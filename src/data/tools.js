@@ -20,6 +20,7 @@ export const IMG_TOOLS = [
 ]
 
 export const PDF_TOOLS = [
+  { name: '批量打印', path: '/print', icon: 'fa-print', color: '#e54d42', desc: '多文件一次打印，支持 PDF 与图片' },
   { name: 'PDF合并', path: '/pdfmerge', icon: 'fa-file-pdf-o', color: '#e54d42', desc: '将多个PDF文件合并成一个文件' },
   { name: 'PDF拆分', path: '/pdfsplit', icon: 'fa-file-pdf-o', color: '#e54d42', desc: '将一个PDF文件拆分成多个文件' },
   { name: 'PDF提取页面', path: '/pdfextract', icon: 'fa-file-pdf-o', color: '#e54d42', desc: '从一个PDF文件中提取若干页面' },

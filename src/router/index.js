@@ -27,6 +27,7 @@ const TOOL_COMPONENTS = {
 
 // PDF 工具（T3）
 const PDF_TOOL_COMPONENTS = {
+  '/print': () => import('../views/tools/print.vue'),
   '/pdfmerge': () => import('../views/tools/pdfmerge.vue'),
   '/pdfsplit': () => import('../views/tools/pdfsplit.vue'),
   '/pdfextract': () => import('../views/tools/pdfextract.vue'),
