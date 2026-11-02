@@ -1,0 +1,177 @@
+/* ============ 基础（对齐原站实测 CSS） ============ */
+html{line-height:1.5;-webkit-text-size-adjust:100%;overflow-x:hidden;overflow-y:scroll}
+html{font-family:system-ui,-apple-system,'Segoe UI',Roboto,Ubuntu,Cantarell,'Noto Sans',sans-serif,'Helvetica Neue',Arial,'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji'}
+html,body{font-size:15px;line-height:1.5}
+body{margin:0;padding:0;background-color:#f1f1f1;min-height:100vh}
+h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}
+h1{font-size:30px;margin:.67em 0}
+*,:after,:before{box-sizing:border-box}
+a{text-decoration:none;color:inherit}
+ul{margin:0;padding:0;list-style:none}
+button{font-family:inherit}
+
+/* ============ 布局容器 ============ */
+.el-container{display:flex;flex-direction:row;flex:1;flex-basis:auto;box-sizing:border-box;min-width:0}
+.el-container.is-vertical{flex-direction:column}
+.el-header{padding:0 20px;box-sizing:border-box;flex-shrink:0}
+.el-main{display:block;flex:1;flex-basis:auto;overflow:auto;padding:20px;box-sizing:border-box}
+.el-footer{padding:0 20px;box-sizing:border-box;flex-shrink:0}
+.flex{display:flex}
+.flex-col{flex-direction:column}
+.flex-wrap{flex-wrap:wrap}
+.items-center{align-items:center}
+.justify-center{justify-content:center}
+.justify-between{justify-content:space-between}
+.justify-end{justify-content:flex-end}
+.content{width:80%}
+.p-3{padding:.75rem}
+.p-4{padding:1rem}
+.mt-1{margin-top:.25rem}
+.mt-2{margin-top:.5rem}
+.mt-4{margin-top:1rem}
+.ml-2{margin-left:.5rem}
+.mr-1{margin-right:.25rem}
+.text-2xl{font-size:1.5rem}
+/* 页面大标题：SPEC 实测原站 h1 = 30px（桌面与移动端一致） */
+.text-4xl{font-size:30px}
+.text-xl{font-size:1.25rem}
+.text-lg{font-size:1.125rem}
+.rounded-sm{border-radius:.125rem}
+.h-full{height:100%}
+.px-5{padding-left:1.25rem;padding-right:1.25rem}
+.block{display:block}
+.no-deco{text-decoration:none}
+main.el-main{min-height:calc(100vh - 120px)}
+
+/* ============ 顶部导航（#545c64 暗色） ============ */
+.horizon-nav{background-color:#545c64;display:flex;position:fixed;top:0;left:0;right:0;z-index:100;box-shadow:0 2px 4px rgba(0,0,0,.12)}
+.fixed-top{position:fixed;top:0;left:0;right:0;z-index:100}
+.horizon-nav .el-row{display:flex;width:100%;align-items:center}
+.navlogo{color:orange;text-decoration:none;cursor:pointer;font-weight:700;font-size:24px;text-align:center;margin:0 20px;display:block;line-height:60px}
+.logoitem{background-color:#545c64;display:flex;align-items:center}
+.hmenu{display:flex;height:60px}
+.hmenu-item{float:left;height:60px;line-height:60px;margin:0;border-bottom:2px solid transparent;color:#fff;cursor:pointer;list-style:none}
+.hmenu-item a{color:inherit;display:block;height:100%;padding:0 20px}
+.hmenu-item.is-active{color:#ffd04b;border-bottom-color:#ffd04b}
+.hmenu-item:not(.is-active):hover{color:#ffd04b}
+.el-dropdown-menu{position:absolute;top:100%;left:0;margin:5px 0;background:#fff;border:1px solid #ebeef5;border-radius:4px;box-shadow:0 2px 12px 0 rgba(0,0,0,.1);padding:6px 0;z-index:200;min-width:120px}
+.el-dropdown-menu__item{list-style:none;line-height:36px;padding:0 20px;margin:0;font-size:14px;color:#606266;cursor:pointer;outline:0}
+.el-dropdown-menu__item:hover{background-color:#ecf5ff;color:#66b1ff}
+.foldicon{font-size:22px;cursor:pointer;color:#fff}
+
+/* ============ 工具卡片 ============ */
+.el-row{position:relative;box-sizing:border-box}
+.el-row:after,.el-row:before{display:table;content:""}
+.el-row:after{clear:both}
+.el-row--flex{display:flex}
+[class*=el-col-]{float:left;box-sizing:border-box;overflow:hidden}
+.el-col-24{width:100%}
+.el-col-12{width:50%}
+.el-col-8{width:33.33333%}
+.el-col-6{width:25%}
+.tool{display:flex;overflow:hidden;word-break:break-word;height:110px;align-items:center;line-height:normal;box-sizing:border-box;border:1px solid #ccc;border-radius:4px;transition:box-shadow .2s ease-in-out;margin-bottom:20px;padding:0 20px;text-decoration:none;background:#fff;position:relative;display:flex;width:100%}
+.tool:hover{box-shadow:0 3px 8px 0 rgba(0,0,0,.2)}
+.tool-icon{font-size:40px;flex-shrink:0}
+.tool-header{font-size:18px;color:#333}
+.tool-subheader{line-height:18px;font-weight:400;letter-spacing:.3px;font-size:13px;color:#707078}
+.tool-tag{position:absolute;top:8px;right:12px;z-index:1}
+.related-tool{display:flex;align-items:center;overflow:hidden;word-break:break-word;height:80px;line-height:normal;box-sizing:border-box;border:1px solid #ccc;border-radius:4px;transition:box-shadow .2s ease-in-out;margin-bottom:20px;padding:0 20px;text-decoration:none;background:#fff;position:relative;width:100%}
+.related-tool:hover{box-shadow:0 3px 8px 0 rgba(0,0,0,.2)}
+
+/* ============ 上传区 ============ */
+.file-upload{width:100%;height:180px;box-shadow:0 2px 4px rgba(0,0,0,.12),0 0 6px rgba(0,0,0,.04);border-radius:6px}
+.el-upload-dragger{background-color:#0081ff;color:#fff;border:none;width:100%;height:180px;text-align:center;cursor:pointer;display:flex;flex-direction:column;justify-content:center;align-items:center;transition:border .2s}
+.cloud-upload-item{font-size:55px;color:#c0c4cc;margin:0 0 16px;line-height:50px}
+.el-upload-dragger .cloud-upload-item{color:rgba(255,255,255,.7)}
+
+/* ============ 按钮（Element 风格） ============ */
+.el-button{display:inline-block;line-height:1;white-space:nowrap;cursor:pointer;background:#fff;border:1px solid #dcdfe6;color:#606266;text-align:center;box-sizing:border-box;outline:0;margin:0;transition:.1s;font-weight:500;padding:12px 20px;font-size:14px;border-radius:4px}
+.el-button:focus,.el-button:hover{color:#409eff;border-color:#c6e2ff;background-color:#ecf5ff}
+.el-button:active{color:#3a8ee6;border-color:#3a8ee6}
+.el-button--primary{color:#fff;background-color:#409eff;border-color:#409eff}
+.el-button--primary:focus,.el-button--primary:hover{color:#fff;background:#66b1ff;border-color:#66b1ff}
+.el-button--info{color:#fff;background-color:#909399;border-color:#909399}
+.el-button--info:focus,.el-button--info:hover{color:#fff;background:#a6a9ad;border-color:#a6a9ad}
+.el-button.is-disabled,.el-button.is-disabled:focus,.el-button.is-disabled:hover{color:#fff;cursor:not-allowed;background-image:none;background-color:#a0cfff;border-color:#a0cfff}
+.el-button--info.is-disabled{background-color:#c8c9cc;border-color:#c8c9cc}
+.el-button-group{display:inline-block}
+.el-button-group .el-button:first-child{border-top-right-radius:0;border-bottom-right-radius:0;border-right-color:rgba(255,255,255,.5)}
+.el-button-group .el-button:last-child{border-top-left-radius:0;border-bottom-left-radius:0;margin-left:-1px}
+
+/* ============ 消息浮条（el-message 风格） ============ */
+.el-message{position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 16px;border-radius:4px;font-size:14px;z-index:2000;display:flex;align-items:center;box-shadow:0 2px 12px 0 rgba(0,0,0,.1);animation:msg-in .25s ease}
+.el-message--success{background:#f0f9eb;border:1px solid #e1f3d8;color:#67c23a}
+.el-message--error{background:#fef0f0;border:1px solid #fde2e2;color:#f56c6c}
+.el-message--info{background:#edf2fc;border:1px solid #ebeef5;color:#909399}
+@keyframes msg-in{from{opacity:0;transform:translate(-50%,-12px)}to{opacity:1;transform:translate(-50%,0)}}
+.msg-leave{animation:msg-out .25s ease forwards}
+@keyframes msg-out{to{opacity:0;transform:translate(-50%,-12px)}}
+
+/* ============ 表单控件 ============ */
+.el-input__inner{-webkit-appearance:none;background-color:#fff;background-image:none;border-radius:4px;border:1px solid #dcdfe6;box-sizing:border-box;color:#606266;display:inline-block;font-size:inherit;height:40px;line-height:40px;outline:0;padding:0 15px;transition:border-color .2s;width:100%}
+.el-input__inner:focus{border-color:#409eff;outline:0}
+.el-textarea{display:inline-block;width:100%}
+.el-textarea__inner{display:block;resize:vertical;padding:5px 15px;line-height:1.5;box-sizing:border-box;font-size:inherit;color:#606266;background-color:#fff;background-image:none;border:1px solid #dcdfe6;border-radius:4px;transition:border-color .2s;width:100%;font-family:inherit;min-height:80px}
+.el-textarea__inner:focus{border-color:#409eff;outline:0}
+.el-select select,.el-select{appearance:auto}
+input[type=range]{accent-color:#409eff;width:100%}
+.el-slider{display:flex;align-items:center;gap:12px}
+.el-switch{display:inline-flex;align-items:center;cursor:pointer}
+.el-radio{cursor:pointer;margin-right:16px;white-space:nowrap}
+.el-radio input{margin-right:4px;accent-color:#409eff}
+.form-label{font-size:14px;color:#606266;margin-right:8px}
+.option-panel{background:#fff;border:1px solid #ebeef5;border-radius:4px;padding:16px}
+
+/* ============ 任务列表 / 结果 ============ */
+.task-list{margin-top:1rem}
+.task-item{display:flex;align-items:center;background:#fff;border:1px solid #ebeef5;border-radius:4px;padding:10px 16px;margin-bottom:8px;gap:12px}
+.task-item .t-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#303133;font-size:14px}
+.task-item .t-size{color:#909399;font-size:12px;flex-shrink:0}
+.task-item .t-status{font-size:12px;flex-shrink:0;padding:2px 8px;border-radius:3px}
+.t-status.waiting{background:#f4f4f5;color:#909399}
+.t-status.processing{background:#edf2fc;color:#409eff}
+.t-status.done{background:#f0f9eb;color:#67c23a}
+.t-status.failed{background:#fef0f0;color:#f56c6c}
+.task-item .t-del{cursor:pointer;color:#c0c4cc;font-size:16px;flex-shrink:0}
+.task-item .t-del:hover{color:#f56c6c}
+.task-thumb{width:44px;height:44px;object-fit:cover;border-radius:3px;border:1px solid #ebeef5;flex-shrink:0}
+
+/* ============ 文本工具面板 ============ */
+.tool-panel{background:#fff;border:1px solid #ebeef5;border-radius:4px;padding:20px;margin-top:1rem}
+.result-box{background:#f8f8f8;border:1px solid #ebeef5;border-radius:4px;padding:12px;font-family:Consolas,Menlo,monospace;font-size:13px;word-break:break-all;white-space:pre-wrap;max-height:300px;overflow:auto}
+.copy-btn{margin-left:8px}
+
+/* ============ 页脚 ============ */
+.copyright{display:flex;justify-content:center;font-size:12px;color:#909399;line-height:1.8}
+.copyright a{color:inherit}
+.copyright a:hover{color:#409eff}
+
+/* ============ 广告占位 ============ */
+.gads{min-height:90px;display:flex;align-items:center;justify-content:center;color:#c0c4cc;font-size:13px;border-radius:4px}
+
+/* ============ 响应式（Element UI 断点） ============ */
+@media only screen and (max-width:991px){
+  .content{width:100%}
+  .tool{height:80px;padding:0 10px}
+  .tool-icon{font-size:30px}
+  .tool-header{font-size:14px}
+  .file-upload{height:140px}
+  .el-upload-dragger{height:140px}
+  .cloud-upload-item{font-size:40px}
+  .hidden-sm-and-down{display:none!important}
+}
+@media only screen and (min-width:992px){
+  .hidden-md-and-up{display:none!important}
+}
+@media only screen and (max-width:767px){
+  .el-col-xs-12{width:50%}
+}
+@media only screen and (min-width:768px){
+  .el-col-sm-12{width:50%}
+}
+@media only screen and (min-width:992px){
+  .el-col-md-8{width:33.33333%}
+}
+@media only screen and (min-width:1200px){
+  .el-col-lg-6{width:25%}
+}
