@@ -1,6 +1,8 @@
 # imgtool-clone
 
 基于 Vue 3 + Vite 复刻 [imgtool.net](https://imgtool.net) 的在线图片/文档/文本工具站。
+
+**🌐 在线体验：https://bohang-gao.github.io/imgtool-clone/** （GitHub Pages，push main 自动部署）
 全部图片、PDF、文本处理均在浏览器本地完成，文件不上传服务器。
 
 ## 运行方式
