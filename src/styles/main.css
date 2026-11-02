@@ -31,6 +31,25 @@ a{text-decoration:none;color:inherit}
 ul{margin:0;padding:0;list-style:none}
 button{font-family:inherit}
 
+/* ============ AppShell（侧边栏 + 内容区） ============ */
+.app-shell{display:flex;min-height:100vh;width:100%}
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:240px;background:var(--surface);border-right:1px solid var(--border);padding:16px;overflow-y:auto;z-index:120;box-sizing:border-box}
+.app-body{margin-left:240px;min-height:100vh;display:flex;flex-direction:column;flex:1;min-width:0}
+.app-body .content{flex:1}
+.side-logo{display:block;font-size:22px;font-weight:800;letter-spacing:-.5px;color:var(--primary);padding:6px 8px 14px}
+.side-search{position:relative;margin-bottom:16px}
+.side-search .fa-search{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-3);font-size:13px;pointer-events:none}
+.side-search-input{height:38px;line-height:38px;padding-left:34px;font-size:14px;background:#f8fafc}
+.side-menu{display:flex;flex-direction:column;gap:2px}
+.side-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);font-size:14px;color:var(--text-2);border-left:3px solid transparent;transition:background-color .15s,color .15s,border-color .15s}
+.side-item i{width:18px;text-align:center;font-size:15px}
+.side-item:hover{background:#f8fafc;color:var(--text)}
+.side-item.is-active{background:var(--primary-weak);color:var(--primary);border-left-color:var(--primary);font-weight:600}
+.mobile-bar{display:none}
+.hamburger{background:none;border:none;font-size:22px;color:var(--primary);cursor:pointer;padding:6px 10px}
+.mobile-logo{font-size:20px;font-weight:800;color:var(--primary);letter-spacing:-.5px}
+.sidebar-mask{display:none}
+
 /* ============ 布局容器 ============ */
 .el-container{display:flex;flex-direction:row;flex:1;flex-basis:auto;box-sizing:border-box;min-width:0}
 .el-container.is-vertical{flex-direction:column}
@@ -44,7 +63,7 @@ button{font-family:inherit}
 .justify-center{justify-content:center}
 .justify-between{justify-content:space-between}
 .justify-end{justify-content:flex-end}
-.content{width:80%;max-width:1280px;margin:0 auto}
+.content{width:auto;max-width:1200px;padding:24px 32px}
 .p-3{padding:.75rem}
 .p-4{padding:1rem}
 .mt-1{margin-top:.25rem}
@@ -62,22 +81,6 @@ button{font-family:inherit}
 .block{display:block}
 .no-deco{text-decoration:none}
 main.el-main{min-height:calc(100vh - 120px)}
-
-/* ============ 顶部导航（白色扁平） ============ */
-.horizon-nav{background-color:var(--surface);display:flex;position:fixed;top:0;left:0;right:0;z-index:100;border-bottom:1px solid var(--border)}
-.fixed-top{position:fixed;top:0;left:0;right:0;z-index:100}
-.horizon-nav .el-row{display:flex;width:100%;align-items:center}
-.navlogo{color:var(--primary);text-decoration:none;cursor:pointer;font-weight:800;font-size:22px;text-align:center;margin:0 20px;display:block;line-height:60px;letter-spacing:-.5px}
-.logoitem{display:flex;align-items:center}
-.hmenu{display:flex;height:60px}
-.hmenu-item{float:left;height:60px;line-height:60px;margin:0;border-bottom:2px solid transparent;color:var(--text-2);cursor:pointer;list-style:none;transition:color .15s}
-.hmenu-item a{color:inherit;display:block;height:100%;padding:0 18px}
-.hmenu-item.is-active{color:var(--primary);border-bottom-color:var(--primary);font-weight:600}
-.hmenu-item:not(.is-active):hover{color:var(--text)}
-.el-dropdown-menu{position:absolute;top:100%;left:0;margin:6px 0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 30px rgba(16,24,40,.14);padding:6px 0;z-index:200;min-width:140px}
-.el-dropdown-menu__item{list-style:none;line-height:38px;padding:0 18px;margin:0;font-size:14px;color:var(--text);cursor:pointer;outline:0;border-radius:var(--radius-sm)}
-.el-dropdown-menu__item:hover{background-color:var(--primary-weak);color:var(--primary)}
-.foldicon{font-size:22px;cursor:pointer;color:var(--text)}
 
 /* ============ 栅格 ============ */
 .el-row{position:relative;box-sizing:border-box}
@@ -172,16 +175,33 @@ input[type=range]{accent-color:var(--primary);width:100%}
 .copyright a{color:inherit}
 .copyright a:hover{color:var(--primary)}
 
-/* ============ 广告占位 ============ */
-.gads{min-height:90px;display:flex;align-items:center;justify-content:center;color:#c3cad6;font-size:13px;border-radius:var(--radius);background:var(--surface);border:1px dashed var(--border)}
-
 /* ============ 说明绿盒（扁平化） ============ */
 .mt-4.rounded-sm.p-4{background:#f0fdf4!important;border:1px solid #bbf7d0;border-radius:var(--radius);box-shadow:none}
 .mt-4.rounded-sm.p-4 h2{color:#166534;font-size:17px}
 .mt-4.rounded-sm.p-4 p{color:#3f6212}
 
+/* ============ 常用工具（最近使用） ============ */
+.recent-tools{margin-bottom:4px}
+.recent-row{display:flex;flex-wrap:wrap;gap:14px}
+.recent-card{width:auto;min-width:150px;flex:0 0 auto;height:88px;padding:0 16px;margin-bottom:0}
+.recent-card .tool-header{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recent-card .tool-icon{font-size:30px}
+.recent-card .tool-icon>i{width:46px;height:46px;border-radius:12px}
+.recent-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:44px 20px;background:var(--surface);border:1px dashed var(--border);border-radius:var(--radius);color:var(--text-2)}
+.recent-empty i{font-size:36px;color:var(--primary)}
+.recent-empty p{font-size:14px}
+.recent-arrow{color:var(--primary);font-weight:700}
+.side-badge{margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--primary);color:#fff;font-size:12px;font-weight:600;line-height:20px;text-align:center;flex-shrink:0}
+.side-item.is-active .side-badge{background:var(--primary)}
+
 /* ============ 响应式 ============ */
 @media only screen and (max-width:991px){
+  .app-body{margin-left:0}
+  .app-body .content{padding:64px 16px 16px}
+  .mobile-bar{display:flex;align-items:center;gap:6px;position:fixed;top:0;left:0;right:0;height:56px;padding:0 8px;background:var(--surface);border-bottom:1px solid var(--border);z-index:110}
+  .sidebar{transform:translateX(-100%);transition:transform .22s ease;box-shadow:0 10px 30px rgba(16,24,40,.16);border-right:1px solid var(--border)}
+  .sidebar.is-open{transform:translateX(0)}
+  .sidebar-mask{display:block;position:fixed;inset:0;background:rgba(16,24,40,.42);z-index:115}
   .content{width:100%;padding:0 2px}
   .tool{height:84px;padding:0 14px}
   .tool-icon{font-size:30px}

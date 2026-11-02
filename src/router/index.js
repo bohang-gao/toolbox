@@ -2,6 +2,7 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import Home from '../views/Home.vue'
 import { ALL_TOOLS } from '../data/tools.js'
 import ToolPageView from '../views/ToolPageView.vue'
+import { recordToolVisit, notifyRecentChange } from '../lib/recent.js'
 
 // 已单独实现的占位工具（服务端/重型编辑器类）
 const STUB_PATHS = ['/idphoto', '/ocr', '/image-editor', '/pdf-editor', '/word2pdf', '/excel2pdf', '/ppt2pdf', '/pdf2word', '/websocket']
@@ -73,15 +74,27 @@ const toolRoutes = ALL_TOOLS
 
 const routes = [
   { path: '/', name: 'home', component: Home },
+  { path: '/c/recent', component: Home, meta: { cat: 'recent' } },
+  { path: '/c/img', component: Home, meta: { cat: 'img' } },
+  { path: '/c/pdf', component: Home, meta: { cat: 'pdf' } },
+  { path: '/c/text', component: Home, meta: { cat: 'text' } },
   ...STUB_PATHS.map(p => {
     const t = ALL_TOOLS.find(x => x.path === p)
-    return { path: p, component: () => import('../views/Stub.vue'), meta: { title: t ? t.name : '工具' } }
+    return { path: p, component: () => import('../views/Stub.vue'), meta: { title: t ? t.name : '工具', tool: t } }
   }),
   ...toolRoutes,
   { path: '/:pathMatch(.*)*', redirect: '/' }
 ]
 
-export default createRouter({
+const router = createRouter({
   history: createWebHashHistory(),
   routes
 })
+
+// 工具页访问记录（含占位工具页）：凡 meta.tool 存在即记录
+router.afterEach((to) => {
+  if (to.meta && to.meta.tool) recordToolVisit(to.path)
+  else notifyRecentChange()
+})
+
+export default router
