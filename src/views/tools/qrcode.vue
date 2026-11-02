@@ -26,7 +26,7 @@
           v-model="text"
           class="el-textarea__inner mt-2"
           style="min-height:120px"
-          placeholder="输入需要生成二维码的文字或网址，例如 https://imgtool.net/"
+          placeholder="输入需要生成二维码的文字或网址，例如 https://example.com/"
         ></textarea>
       </div>
 

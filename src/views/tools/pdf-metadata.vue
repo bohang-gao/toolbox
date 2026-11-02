@@ -93,7 +93,7 @@ async function processHandler(tasks) {
     doc.setAuthor(meta.author)
     doc.setSubject(meta.subject)
     doc.setKeywords(meta.keywords ? meta.keywords.split(/[,，]/).map(s => s.trim()).filter(Boolean) : [])
-    doc.setProducer('imgtool.net 复刻版')
+    doc.setProducer('Toolbox')
     doc.setModificationDate(new Date())
     if (meta.date) {
       const d = new Date(meta.date)

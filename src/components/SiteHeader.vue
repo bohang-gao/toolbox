@@ -3,10 +3,10 @@
     <div class="horizon-nav fixed-top">
       <div class="el-row" style="width:100%">
         <div class="logoitem" style="flex:0 0 auto">
-          <router-link to="/" class="navlogo"><strong>imgtool.net</strong></router-link>
+          <router-link to="/" class="navlogo"><strong>Toolbox</strong></router-link>
         </div>
         <div class="hidden-sm-and-down" style="flex:1">
-          <ul class="hmenu" style="background-color:#545c64;border:none">
+          <ul class="hmenu">
             <li v-for="item in menu" :key="item.label" class="hmenu-item"
                 :class="{'is-active': isActive(item)}">
               <router-link v-if="item.to" :to="item.to" class="no-deco block h-full px-5">{{ item.label }}</router-link>
