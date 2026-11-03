@@ -14,6 +14,7 @@ export function showMessage(text, type = 'info', duration = 2500) {
 }
 export const msgSuccess = (t) => showMessage(t, 'success')
 export const msgError = (t) => showMessage(t, 'error')
+export const msgWarning = (t) => showMessage(t, 'warning', 4000)
 
 /* ---------- 文件选择（点击 + 拖拽），返回 File[] ---------- */
 export function pickFiles({ accept = '', multiple = true, validator } = {}) {

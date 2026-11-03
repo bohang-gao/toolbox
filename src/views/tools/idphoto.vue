@@ -193,7 +193,7 @@
 import { computed, nextTick, ref, shallowRef, watch } from 'vue'
 import ToolPage from '../../components/ToolPage.vue'
 import {
-  imageValidator, loadImage, canvasToBlob, downloadBlob, baseName, msgSuccess, msgError
+  imageValidator, loadImage, canvasToBlob, downloadBlob, baseName, msgSuccess, msgError, msgWarning
 } from '../../lib/ui.js'
 import {
   detectBackgroundColor, segmentBackground, cleanMask, featherAlpha, refineEdgeAlpha,
@@ -393,6 +393,7 @@ async function runSegmentation() {
     msgError(seg.reason || '抠图失败，请尝试手动点选背景区域')
     return { ok: false, retried: 0 }
   }
+  if (seg.warning) msgWarning(seg.warning)
 
   const cleaned = cleanMask(seg.mask, w, h)
   const alpha = featherAlpha(refineEdgeAlpha(imageData, cleaned, seg.bg, w, h), w, h, 1)

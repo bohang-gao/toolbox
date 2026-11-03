@@ -14,6 +14,7 @@ import {
   refineEdgeAlpha,
   makeImageData,
   countSubjectComponents,
+  boundaryCompactness,
 } from './portrait.js'
 import { SIZE_PRESETS, getPreset, A4, layoutA4 } from './idphoto.js'
 
@@ -784,6 +785,51 @@ section('W6 主体连通域计数')
   check('已知 3 块主体 → 主体块数 = 3', count === 3, `count=${count}`)
   check('前景像素总数 = 1925', total === 1925, `total=${total}`)
   check('最大块面积 = 900', largest === 900, `largest=${largest}`)
+}
+
+section('W7 侵蚀警告（边界紧凑度）')
+{
+  // 圆形主体 → compactness ≈ 1
+  {
+    const W = 120, H = 120
+    const alpha = new Uint8ClampedArray(W * H).fill(0)
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      if ((x - 60) ** 2 + (y - 60) ** 2 <= 40 * 40) alpha[y * W + x] = 255
+    }
+    const c = boundaryCompactness(alpha, W, H)
+    check('圆形主体紧凑度接近 1', c < 1.4, `compact=${c.toFixed(2)}`)
+  }
+  // 背景与主体颜色过于接近且边界为 12px 渐变（真实照片形态，Sobel 屏障不设防）
+  {
+    const W = 200, H = 200
+    const img = makeImageData(W, H)
+    const d = img.data
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const i = (y * W + x) * 4
+      const nd = Math.sqrt(((x - 100) / 70) ** 2 + ((y - 100) / 70) ** 2)
+      let v = 246
+      if (y > 150 && Math.abs(x - 100) < 75) v = 60               // 深色肩部（保 coverage 在区间内，模拟真实照片）
+      else if (nd <= 1) v = 233
+      else if (nd <= 1.12) v = Math.round(246 - 13 * (1.12 - nd) / 0.12)
+      d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255
+    }
+    const res = segmentAdaptive(img)
+    const cxRes = []
+    for (let dy = -4; dy <= 4; dy++) for (let dx = -4; dx <= 4; dx++)
+      cxRes.push(res.alpha[(100 + dy) * W + (100 + dx)])
+    const centerMin = Math.min(...cxRes)
+    check('颜色过近 + 渐变边界：脸部被啃食（复现真实缺陷）', centerMin < 128,
+      `center=${centerMin}`)
+    check('颜色过近且无法修复时给出 warning', typeof res.warning === 'string' && res.warning.includes('手动'),
+      `warning=${res.warning ? 'yes' : 'no'}`)
+    check('有 warning 时结果仍可用（ok=true）', res.ok === true, `ok=${res.ok}`)
+  }
+  // 正常好结果 → 无 warning
+  {
+    const img = makePortrait()
+    const res = segmentAdaptive(img)
+    check('好结果无 warning', !res.warning, `warning=${res.warning || 'no'}`)
+  }
 }
 
 /* ---------- 汇总 ---------- */

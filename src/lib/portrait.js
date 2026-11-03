@@ -415,6 +415,51 @@ export function fragmentationScore(count, total, largest) {
   return count / Math.max(1, largest / Math.max(1, total))
 }
 
+/**
+ * 最大主体块的边界紧凑度：perim² / (4π·area)。圆=1，人头肩部约 1.5–4，
+ * 被侵蚀出毛边/空洞的主体会显著升高（实测 >5.5）。用于检测「颜色过于接近
+ * 导致区域生长啃食主体」的无声失败。
+ */
+export function boundaryCompactness(alpha, w, h) {
+  const IS = 128
+  const subj = new Uint8Array(w * h)
+  let total = 0
+  for (let i = 0; i < w * h; i++) if (alpha[i] > IS) { subj[i] = 1; total++ }
+  if (!total) return 0
+  const lbl = new Int32Array(w * h)
+  const qx = new Int32Array(w * h)
+  let nl = 0, bestArea = 0, bestLbl = 0
+  for (let s = 0; s < w * h; s++) {
+    if (!subj[s] || lbl[s]) continue
+    nl++; let head = 0, tail = 0, area = 0
+    qx[tail++] = s; lbl[s] = nl
+    while (head < tail) {
+      const cur = qx[head++]; area++
+      const cy = (cur / w) | 0, cx = cur - cy * w
+      if (cx > 0 && subj[cur - 1] && !lbl[cur - 1]) { lbl[cur - 1] = nl; qx[tail++] = cur - 1 }
+      if (cx < w - 1 && subj[cur + 1] && !lbl[cur + 1]) { lbl[cur + 1] = nl; qx[tail++] = cur + 1 }
+      if (cy > 0 && subj[cur - w] && !lbl[cur - w]) { lbl[cur - w] = nl; qx[tail++] = cur - w }
+      if (cy < h - 1 && subj[cur + w] && !lbl[cur + w]) { lbl[cur + w] = nl; qx[tail++] = cur + w }
+    }
+    if (area > bestArea) { bestArea = area; bestLbl = nl }
+  }
+  let perim = 0
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = y * w + x
+      if (lbl[i] !== bestLbl) continue
+      if (x === 0 || !subj[i - 1] || lbl[i - 1] !== bestLbl) { perim++; continue }
+      if (x === w - 1 || !subj[i + 1] || lbl[i + 1] !== bestLbl) { perim++; continue }
+      if (y === 0 || !subj[i - w] || lbl[i - w] !== bestLbl) { perim++; continue }
+      if (y === h - 1 || !subj[i + w] || lbl[i + w] !== bestLbl) { perim++ }
+    }
+  }
+  return perim * perim / (4 * Math.PI * bestArea)
+}
+
+/** 侵蚀警告阈值（实测校准：正常头肩 1.5–4.5，被啃食 >5.5） */
+const COMPACT_WARN = 5
+
 /* ---------- 自适应分割（含碎片化自动重试） ---------- */
 
 /**
@@ -456,8 +501,16 @@ export function segmentAdaptive(imageData, opts = {}) {
   }
 
   // 首轮成功且不碎片化 → 一次到位，不多跑
+  const withWarn = (r) => {
+    const compact = boundaryCompactness(r.alpha, imageData.width, imageData.height)
+    // 两类无声失败：边界被啃出毛边（compact 高）/ 主体被大面积吞食（背景占比异常高）
+    if (compact > COMPACT_WARN || r.coverage > 0.8) {
+      return { ...r, warning: '背景与主体颜色过于接近，自动抠图可能不完整；建议切换「手动点选」模式，右键点选脸部等需保留的区域后重新抠图' }
+    }
+    return r
+  }
   const firstEval = evaluate(first)
-  if (!firstEval.fragmented) return { ...first, retried: 0 }
+  if (!firstEval.fragmented) return withWarn({ ...first, retried: 0 })
 
   let best = first
   let bestScore = firstEval.score
@@ -478,7 +531,7 @@ export function segmentAdaptive(imageData, opts = {}) {
     }
   }
 
-  return { ...best, retried: bestRound }
+  return withWarn({ ...best, retried: bestRound })
 }
 
 /* ---------- 背景分割（4 邻域 BFS） ---------- */
