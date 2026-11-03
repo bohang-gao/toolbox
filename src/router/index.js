@@ -5,7 +5,7 @@ import ToolPageView from '../views/ToolPageView.vue'
 import { recordToolVisit, notifyRecentChange } from '../lib/recent.js'
 
 // 已单独实现的占位工具（服务端/重型编辑器类）
-const STUB_PATHS = ['/idphoto', '/ocr', '/image-editor', '/pdf-editor', '/word2pdf', '/excel2pdf', '/ppt2pdf', '/pdf2word', '/websocket']
+const STUB_PATHS = ['/ocr', '/image-editor', '/pdf-editor', '/word2pdf', '/excel2pdf', '/ppt2pdf', '/pdf2word', '/websocket']
 
 // 已实现的图片处理工具（懒加载）
 const TOOL_COMPONENTS = {
@@ -22,7 +22,8 @@ const TOOL_COMPONENTS = {
   '/qrcode': () => import('../views/tools/qrcode.vue'),
   '/image-grid': () => import('../views/tools/image-grid.vue'),
   '/image-watermark': () => import('../views/tools/image-watermark.vue'),
-  '/imagesubtitle': () => import('../views/tools/imagesubtitle.vue')
+  '/imagesubtitle': () => import('../views/tools/imagesubtitle.vue'),
+  '/idphoto': () => import('../views/tools/idphoto.vue')
 }
 
 // PDF 工具（T3）

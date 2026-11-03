@@ -1,6 +1,6 @@
 // 全站工具目录（名称/路由/图标/颜色/描述 与原站一致）
 export const IMG_TOOLS = [
-  { name: '证件照换底色', path: '/idphoto', icon: 'fa-id-card', color: '#0081ff', desc: '一寸照制作，一键换底色' },
+  { name: '证件照换底色', path: '/idphoto', icon: 'fa-id-card', color: '#0081ff', desc: '一键换底色，输出标准证件照尺寸' },
   { name: '图片压缩', path: '/imagecompress', icon: 'fa-compress', color: '#0081ff', desc: '不改变图片尺寸减小文件大小' },
   { name: '图片尺寸调整', path: '/imageresize', icon: 'fa-expand', color: '#0081ff', desc: '图片宽高等比缩放' },
   { name: '图片Base64编码', path: '/image2base64', icon: 'fa-file-image-o', color: '#a5673f', desc: '图片和base64编码互转' },
