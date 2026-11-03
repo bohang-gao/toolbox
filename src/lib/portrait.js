@@ -119,17 +119,63 @@ const MAX_REGION = 4096
  *   1) 局部平滑：与入队前驱像素的通道差 <= stepTol（跟随渐变）
  *   2) 漂移有界：与该区域种子色的通道差 <= driftTol（防止渗进主体）
  *
+ * 为防止浅色背景下区域生长渗入人脸/衬衫，额外约束：
+ *   3) 肤色保护：YCbCr 判定为肤色的像素，仅当与区域参考色非常接近（<= skinTol）
+ *      时才允许入背景，否则阻断生长（浅色平滑肤色不会被整块吞掉）。
+ *   4) 强边缘屏障：Sobel 梯度幅值超过 edgeTol 的像素，若与前驱颜色跳变明显
+ *      （> 6）则拒绝入背景（发型/下颌线/衣领等强边界不再渗透）。
+ *
  * @param {{data:Uint8ClampedArray,width:number,height:number}} imageData
- * @param {{stepTol?:number,driftTol?:number,eraseSeeds?:number[][],keepSeeds?:number[][]}} opts
+ * @param {{stepTol?:number,driftTol?:number,eraseSeeds?:number[][],keepSeeds?:number[][],
+ *   skinGuard?:boolean,edgeGuard?:boolean,skinTol?:number,edgeTol?:number}} opts
  * @returns {{alpha:Uint8ClampedArray,coverage:number,ok:boolean,reason:string,
  *   bg:number[],variance:number,mask:Uint8Array}}
  */
 export function segmentAdaptive(imageData, opts = {}) {
-  const { stepTol = 10, driftTol = 70, eraseSeeds = [], keepSeeds = [] } = opts
+  const {
+    stepTol = 10, driftTol = 55, eraseSeeds = [], keepSeeds = [],
+    skinGuard = true, edgeGuard = true, skinTol = 14, edgeTol = 30,
+  } = opts
   const { data, width: w, height: h } = imageData
   const n = w * h
 
   const det = detectBackgroundColor(imageData)
+
+  // 经典 YCbCr 肤色判定
+  const isSkin = (r, g, b) => {
+    const y = LUMA_R * r + LUMA_G * g + LUMA_B * b
+    const cb = 128 - 0.169 * r - 0.331 * g + 0.5 * b
+    const cr = 128 + 0.5 * r - 0.419 * g - 0.081 * b
+    return cb >= 77 && cb <= 135 && cr >= 133 && cr <= 180 && y > 60
+  }
+
+  // 灰度 Sobel 梯度幅值（一次性预计算，Uint8）
+  let grad = null
+  if (edgeGuard) {
+    const gray = new Float32Array(n)
+    for (let k = 0; k < n; k++) {
+      const i = k * 4
+      gray[k] = LUMA_R * data[i] + LUMA_G * data[i + 1] + LUMA_B * data[i + 2]
+    }
+    grad = new Uint8Array(n)
+    const gAt = (x, y) => {
+      const gx = x < 0 ? 0 : x >= w ? w - 1 : x
+      const gy = y < 0 ? 0 : y >= h ? h - 1 : y
+      return gray[gy * w + gx]
+    }
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const gx =
+          gAt(x + 1, y - 1) + 2 * gAt(x + 1, y) + gAt(x + 1, y + 1) -
+          gAt(x - 1, y - 1) - 2 * gAt(x - 1, y) - gAt(x - 1, y + 1)
+        const gy =
+          gAt(x - 1, y + 1) + 2 * gAt(x, y + 1) + gAt(x + 1, y + 1) -
+          gAt(x - 1, y - 1) - 2 * gAt(x, y - 1) - gAt(x + 1, y - 1)
+        const mag = Math.abs(gx) + Math.abs(gy)
+        grad[y * w + x] = mag > 255 ? 255 : Math.round(mag)
+      }
+    }
+  }
 
   const alpha = new Uint8ClampedArray(n)
   alpha.fill(255)
@@ -238,12 +284,15 @@ export function segmentAdaptive(imageData, opts = {}) {
       const step = Math.max(Math.abs(qr - pr), Math.abs(qg - pg), Math.abs(qb - pb))
       // 漂移有界：与该区域种子色的颜色差
       const drift = Math.max(Math.abs(qr - rr), Math.abs(qg - rg), Math.abs(qb - rb))
-      if (step <= stepTol && drift <= driftTol) {
-        region[ni] = rid
-        queueIdx[tail] = ni
-        queueRef[tail] = rid
-        tail++
-      }
+      if (step > stepTol || drift > driftTol) return
+      // 肤色保护：肤色像素必须与参考色几乎同色才可入背景，否则阻断生长
+      if (skinGuard && isSkin(qr, qg, qb) && drift > skinTol) return
+      // 强边缘屏障：颜色跳变明显处要求梯度足够低才允许跨越
+      if (edgeGuard && step > 6 && grad[ni] > edgeTol) return
+      region[ni] = rid
+      queueIdx[tail] = ni
+      queueRef[tail] = rid
+      tail++
     }
 
     if (x > 0) tryN(idx - 1)
@@ -304,22 +353,27 @@ export function segmentAdaptive(imageData, opts = {}) {
 /**
  * @param {{data:Uint8ClampedArray,width:number,height:number}} imageData
  * @param {{tol?:number,tolLum?:number,stepTol?:number,driftTol?:number,
- *   mode?:'strict'|'adaptive',eraseSeeds?:number[][],keepSeeds?:number[][]}} opts
+ *   mode?:'strict'|'adaptive',eraseSeeds?:number[][],keepSeeds?:number[][],
+ *   skinGuard?:boolean,edgeGuard?:boolean,skinTol?:number,edgeTol?:number}} opts
  *   mode='strict'（默认）：全局背景色 + 固定容差，向后兼容；
  *   mode='adaptive'：先跑自适应区域生长，失败再回退 strict。
  * @returns {{alpha:Uint8ClampedArray,coverage:number,ok:boolean,reason:string,bg:number[],variance:number,mask:Uint8Array}}
  */
 export function segmentBackground(imageData, opts = {}) {
   const {
-    tol = 38, tolLum = 42, stepTol = 10, driftTol = 70,
+    tol = 38, tolLum = 42, stepTol = 10, driftTol = 55,
     mode = 'strict', eraseSeeds = [], keepSeeds = [],
+    skinGuard = true, edgeGuard = true, skinTol = 14, edgeTol = 30,
   } = opts
   const { data, width: w, height: h } = imageData
   const n = w * h
 
   // 自适应模式：成功即返回，否则回退 strict（variance 检查仅作用于 strict）
   if (mode === 'adaptive') {
-    const adaptive = segmentAdaptive(imageData, { stepTol, driftTol, eraseSeeds, keepSeeds })
+    const adaptive = segmentAdaptive(imageData, {
+      stepTol, driftTol, eraseSeeds, keepSeeds,
+      skinGuard, edgeGuard, skinTol, edgeTol,
+    })
     if (adaptive.ok) return adaptive
     return segmentBackground(imageData, { ...opts, mode: 'strict' })
   }

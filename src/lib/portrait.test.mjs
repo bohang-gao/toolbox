@@ -2,6 +2,7 @@
 // 不依赖浏览器，自行构造 ImageData 结构 + 极简 OffscreenCanvas 桩。
 import {
   detectBackgroundColor,
+  segmentAdaptive,
   segmentBackground,
   cleanMask,
   featherAlpha,
@@ -539,6 +540,153 @@ section('回归：strict 模式结果不变')
   check('strict 模式 mask 与默认调用完全一致', sameMask)
   check('strict 模式仍 ok=true', strict.ok === true,
     `coverage=${(strict.coverage * 100).toFixed(1)}%`)
+}
+
+/* ---------- W5：自适应抠图防渗漏（肤色保护 + 强边缘屏障） ---------- */
+
+// 浅灰白底 + 大面积浅肤色椭圆脸（边缘平滑过渡到肤色，模拟浅色平滑渗漏场景）
+function makeLightSkinScene(w = 200, h = 200, opts = {}) {
+  const BG = [238, 236, 233]
+  const FACE = [232, 203, 180]
+  const img = makeImageData(w, h)
+  const d = img.data
+  const cx = w / 2
+  const cy = h / 2
+  const rx = 80
+  const ry = 75
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4
+      const nd = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2
+      let color = BG
+      if (nd <= 1) {
+        // 边界处与背景同色，向中心平滑过渡到肤色（每步颜色变化很小）
+        const blend = 1 - Math.sqrt(nd)
+        color = BG.map((v, k) => Math.round(v + (FACE[k] - v) * blend))
+      }
+      d[i] = color[0]
+      d[i + 1] = color[1]
+      d[i + 2] = color[2]
+      d[i + 3] = 255
+    }
+  }
+  void opts
+  return img
+}
+
+section('W5 防渗漏：浅底浅肤色（肤色保护）')
+{
+  const W = 200
+  const H = 200
+  const img = makeLightSkinScene(W, H)
+  const res = segmentAdaptive(img)
+  const at = (x, y) => res.alpha[y * W + x]
+
+  let centerMin = 255
+  for (let dy = -4; dy <= 4; dy++) {
+    for (let dx = -4; dx <= 4; dx++) {
+      const a = at(100 + dx, 100 + dy)
+      if (a < centerMin) centerMin = a
+    }
+  }
+  check('浅底浅肤：脸部中心 9×9 alpha 全部 > 200（不被吞）',
+    centerMin > 200, `min=${centerMin}`)
+  check('浅底浅肤：背景角落 alpha < 40',
+    at(5, 5) < 40, `corner=${at(5, 5)}`)
+}
+
+section('W5 对照：关闭肤色保护会渗漏')
+{
+  const W = 200
+  const H = 200
+  const img = makeLightSkinScene(W, H)
+  const res = segmentAdaptive(img, { skinGuard: false })
+  check('skinGuard=false：脸部中心 alpha < 100（证明 guard 在起作用）',
+    res.alpha[100 * W + 100] < 100,
+    `alpha=${res.alpha[100 * W + 100]}`)
+}
+
+section('W5 防渗漏：强边缘屏障（Sobel）')
+{
+  const W = 200
+  const H = 200
+  const BG = [238, 236, 233]
+  const HAIR = [184, 182, 179]
+  const img = makeImageData(W, H)
+  const d = img.data
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const i = (y * W + x) * 4
+      let color = BG
+      if (y >= 60 && y <= 140 && x >= 40 && x <= 160) {
+        if (x < 46) {
+          // 6px 平滑过渡带：每步每通道变化 9（<=stepTol），但梯度 >edgeTol
+          const t = (x - 39) / 6
+          color = BG.map((v, k) => Math.round(v + (HAIR[k] - v) * t))
+        } else {
+          color = HAIR
+        }
+      }
+      d[i] = color[0]
+      d[i + 1] = color[1]
+      d[i + 2] = color[2]
+      d[i + 3] = 255
+    }
+  }
+  const res = segmentAdaptive(img)
+  const at = (x, y) => res.alpha[y * W + x]
+  check('强边缘：头发内侧 3px alpha > 200（屏障不越界吃头发）',
+    at(49, 100) > 200, `alpha=${at(49, 100)}`)
+
+  const noEdge = segmentAdaptive(img, { edgeGuard: false })
+  check('edgeGuard=false：过渡带被穿透，头发内侧 alpha < 100（对照）',
+    noEdge.alpha[100 * W + 49] < 100, `alpha=${noEdge.alpha[100 * W + 49]}`)
+}
+
+section('W5 渐变底不回退（guards 全开）')
+{
+  const W = 240
+  const H = 320
+  const TOP = [219, 231, 245]
+  const BOTTOM = [147, 169, 200]
+  const img = makeImageData(W, H)
+  const d = img.data
+  const cx = 120
+  const cy = 110
+  const rx = 46
+  const ry = 60
+  for (let y = 0; y < H; y++) {
+    const t = y / (H - 1)
+    const bgc = TOP.map((v, k) => Math.round(v + (BOTTOM[k] - v) * t))
+    for (let x = 0; x < W; x++) {
+      const i = (y * W + x) * 4
+      let color = bgc
+      if (y >= 190 && x >= 55 && x <= 185) color = SHOULDER
+      let cov = 0
+      for (let sy = 0; sy < 4; sy++) {
+        for (let sx = 0; sx < 4; sx++) {
+          if (insideEllipse(x + (sx + 0.5) / 4, y + (sy + 0.5) / 4, cx, cy, rx, ry)) cov++
+        }
+      }
+      cov /= 16
+      if (cov > 0) {
+        color = [
+          Math.round(SKIN[0] * cov + color[0] * (1 - cov)),
+          Math.round(SKIN[1] * cov + color[1] * (1 - cov)),
+          Math.round(SKIN[2] * cov + color[2] * (1 - cov)),
+        ]
+      }
+      d[i] = color[0]
+      d[i + 1] = color[1]
+      d[i + 2] = color[2]
+      d[i + 3] = 255
+    }
+  }
+  const res = segmentAdaptive(img, { skinGuard: true, edgeGuard: true })
+  check('渐变底 + guards 全开：ok=true', res.ok === true,
+    `coverage=${(res.coverage * 100).toFixed(1)}%`)
+  check('渐变底 + guards 全开：背景角落 alpha < 40',
+    res.alpha[5 * W + 5] < 40, `corner=${res.alpha[5 * W + 5]}`)
 }
 
 /* ---------- 汇总 ---------- */
