@@ -112,7 +112,7 @@ export function detectBackgroundColor(imageData) {
 const MAX_REGION = 4096
 
 /**
- * 多源 BFS 区域生长，用「局部步进容差」跟随渐变/暗角背景。
+ * 单轮多源 BFS 区域生长，用「局部步进容差」跟随渐变/暗角背景。
  *
  * 与全局模型（四边中位数 + 固定容差）不同，这里每个边缘种子保留自己的
  * 参考色，生长时同时约束：
@@ -131,7 +131,7 @@ const MAX_REGION = 4096
  * @returns {{alpha:Uint8ClampedArray,coverage:number,ok:boolean,reason:string,
  *   bg:number[],variance:number,mask:Uint8Array}}
  */
-export function segmentAdaptive(imageData, opts = {}) {
+function segmentAdaptivePass(imageData, opts = {}) {
   const {
     stepTol = 10, driftTol = 55, eraseSeeds = [], keepSeeds = [],
     skinGuard = true, edgeGuard = true, skinTol = 14, edgeTol = 30,
@@ -346,6 +346,139 @@ export function segmentAdaptive(imageData, opts = {}) {
   }
 
   return { alpha, coverage, ok, reason, bg: det.bg, variance: det.variance, mask }
+}
+
+/* ---------- 主体连通域统计（碎片化评估） ---------- */
+
+/**
+ * 对 alpha>128 的像素做 4 邻域连通域标记，统计面积 ≥ 总面积 minFrac 的「有效主体块」。
+ * @param {Uint8ClampedArray|Uint8Array} alpha
+ * @param {number} w
+ * @param {number} h
+ * @param {number} [minFrac=0.005] 有效块最小面积占比（默认 0.5%）
+ * @returns {{count:number,total:number,largest:number}}
+ *   count = 有效主体块数；total = 前景像素总数；largest = 最大有效块面积
+ */
+export function countSubjectComponents(alpha, w, h, minFrac = 0.005) {
+  const n = w * h
+  const fg = new Uint8Array(n)
+  let total = 0
+  for (let i = 0; i < n; i++) {
+    if (alpha[i] > 128) {
+      fg[i] = 1
+      total++
+    }
+  }
+  if (total === 0) return { count: 0, total: 0, largest: 0 }
+
+  const label = new Int32Array(n).fill(-1)
+  const stack = new Int32Array(n)
+  const minArea = n * minFrac
+  let count = 0
+  let largest = 0
+
+  for (let start = 0; start < n; start++) {
+    if (!fg[start] || label[start] !== -1) continue
+    let top = 0
+    stack[top++] = start
+    label[start] = start
+    let area = 0
+
+    while (top > 0) {
+      const idx = stack[--top]
+      const x = idx % w
+      const y = (idx - x) / w
+      area++
+      const push = (ni) => {
+        if (fg[ni] && label[ni] === -1) {
+          label[ni] = start
+          stack[top++] = ni
+        }
+      }
+      if (x > 0) push(idx - 1)
+      if (x < w - 1) push(idx + 1)
+      if (y > 0) push(idx - w)
+      if (y < h - 1) push(idx + w)
+    }
+
+    if (area >= minArea) {
+      count++
+      if (area > largest) largest = area
+    }
+  }
+
+  return { count, total, largest }
+}
+
+/** 碎片化分数：主体块数 / max(1, 最大块占前景比例)，越小越好 */
+export function fragmentationScore(count, total, largest) {
+  return count / Math.max(1, largest / Math.max(1, total))
+}
+
+/* ---------- 自适应分割（含碎片化自动重试） ---------- */
+
+/**
+ * 自适应分割外层：单轮成功后再做碎片化质量评估，碎片化时收紧容差重试，
+ * 择优返回，不依赖任何颜色先验（灰度照片同样适用）。
+ *
+ * 重试策略：driftTol *= 0.7（下限 25）、stepTol *= 0.8（下限 5），最多 3 轮。
+ * 每轮都必须通过 coverage 合理区间（0.15–0.9），否则丢弃。
+ * 择优：碎片化分数最小者胜出。
+ *
+ * @param {{data:Uint8ClampedArray,width:number,height:number}} imageData
+ * @param {object} [opts] 同 segmentAdaptivePass
+ * @returns 同 segmentAdaptivePass，另加 { retried:number }（0 = 一次成功）
+ */
+export function segmentAdaptive(imageData, opts = {}) {
+  const baseStep = opts.stepTol ?? 10
+  const baseDrift = opts.driftTol ?? 55
+  const MIN_COVERAGE = 0.15
+  const MAX_COVERAGE = 0.9
+  const MAX_FRAGMENTS = 8
+  const MIN_LARGEST_RATIO = 0.6
+  const MAX_RETRY = 3
+
+  // 首轮：必须 ok 且 coverage 合理才值得评估/重试（否则原逻辑直接判定失败）
+  const first = segmentAdaptivePass(imageData, { ...opts, stepTol: baseStep, driftTol: baseDrift })
+  const inRange = (res) => res.ok && res.coverage >= MIN_COVERAGE && res.coverage <= MAX_COVERAGE
+  if (!inRange(first)) return { ...first, retried: 0 }
+
+  const evaluate = (res) => {
+    const { count, total, largest } = countSubjectComponents(
+      res.alpha, imageData.width, imageData.height
+    )
+    const largestRatio = largest / Math.max(1, total)
+    const fragmented = count > MAX_FRAGMENTS || largestRatio < MIN_LARGEST_RATIO
+    return {
+      fragmented,
+      score: fragmentationScore(count, total, largest),
+    }
+  }
+
+  // 首轮成功且不碎片化 → 一次到位，不多跑
+  const firstEval = evaluate(first)
+  if (!firstEval.fragmented) return { ...first, retried: 0 }
+
+  let best = first
+  let bestScore = firstEval.score
+  let bestRound = 0
+  let driftTol = baseDrift
+  let stepTol = baseStep
+
+  for (let round = 1; round <= MAX_RETRY; round++) {
+    driftTol = Math.max(25, Math.round(driftTol * 0.7))
+    stepTol = Math.max(5, Math.round(stepTol * 0.8))
+    const res = segmentAdaptivePass(imageData, { ...opts, stepTol, driftTol })
+    if (!inRange(res)) continue // coverage 不合理 → 丢弃该轮
+    const ev = evaluate(res)
+    if (ev.score < bestScore) {
+      best = res
+      bestScore = ev.score
+      bestRound = round
+    }
+  }
+
+  return { ...best, retried: bestRound }
 }
 
 /* ---------- 背景分割（4 邻域 BFS） ---------- */

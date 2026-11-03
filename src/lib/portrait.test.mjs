@@ -13,6 +13,7 @@ import {
   renderIdPhoto,
   refineEdgeAlpha,
   makeImageData,
+  countSubjectComponents,
 } from './portrait.js'
 import { SIZE_PRESETS, getPreset, A4, layoutA4 } from './idphoto.js'
 
@@ -687,6 +688,102 @@ section('W5 渐变底不回退（guards 全开）')
     `coverage=${(res.coverage * 100).toFixed(1)}%`)
   check('渐变底 + guards 全开：背景角落 alpha < 40',
     res.alpha[5 * W + 5] < 40, `corner=${res.alpha[5 * W + 5]}`)
+}
+
+/* ---------- W6：碎片化自动重试（灰度/低对比兜底） ---------- */
+
+// 白底(246) + 浅灰平滑椭圆脸(231，内部 3% 渐变噪声)：
+// 边界 2px 平滑过渡，默认容差会从边界渗入脸部、把脸打碎；
+// 收紧容差（drift 55→25、step 10→5）后，渗漏被边界步进挡住。
+function makeGrayScene(w = 200, h = 200) {
+  const BG = 246
+  const FACE = 231
+  const AMP = 13 // 约 5% 噪声（±13/255）：3% 时首轮渗漏会整片吞掉背景（coverage 超区间），无法触发重试
+  const img = makeImageData(w, h)
+  const d = img.data
+  const cx = w / 2
+  const cy = h / 2
+  const rx = w * 0.37
+  const ry = h * 0.35
+  const edgeW = 2
+  let seed = 12345
+  const rnd = () => {
+    seed = (seed * 1103515245 + 12345) & 0x7fffffff
+    return seed / 0x7fffffff
+  }
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4
+      const nd = Math.sqrt(((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2)
+      let v
+      if (nd <= 1 - edgeW / ((rx + ry) / 2)) {
+        v = FACE + Math.round((rnd() * 2 - 1) * AMP)
+      } else if (nd <= 1) {
+        const t = (1 - nd) / (edgeW / ((rx + ry) / 2))
+        v = Math.round(BG + (FACE - BG) * Math.min(1, t))
+      } else {
+        v = BG
+      }
+      v = Math.max(0, Math.min(255, v))
+      d[i] = d[i + 1] = d[i + 2] = v
+      d[i + 3] = 255
+    }
+  }
+  return img
+}
+
+section('W6 灰度渗漏：自动重试兜底')
+{
+  const W = 200
+  const H = 200
+  const img = makeGrayScene(W, H)
+  const res = segmentAdaptive(img)
+  const at = (x, y) => res.alpha[y * W + x]
+
+  let centerMin = 255
+  for (let dy = -4; dy <= 4; dy++) {
+    for (let dx = -4; dx <= 4; dx++) {
+      const a = at(100 + dx, 100 + dy)
+      if (a < centerMin) centerMin = a
+    }
+  }
+  check('灰度低对比：自动重试后脸部中心 9×9 alpha 全 > 150',
+    centerMin > 150, `min=${centerMin}`)
+  check('灰度低对比：发生过自动重试 retried >= 1',
+    res.retried >= 1, `retried=${res.retried}`)
+  check('灰度低对比：背景角落 alpha < 40',
+    at(5, 5) < 40, `corner=${at(5, 5)}`)
+}
+
+section('W6 不误伤好结果（纯色蓝底 + 肤色头像）')
+{
+  const img = makePortrait()
+  const res = segmentAdaptive(img)
+  check('好结果不重试 retried=0', res.retried === 0, `retried=${res.retried}`)
+  check('好结果仍 ok=true', res.ok === true,
+    `coverage=${(res.coverage * 100).toFixed(1)}%`)
+  check('好结果脸部 alpha > 200', res.alpha[150 * img.width + 150] > 200,
+    `alpha=${res.alpha[150 * img.width + 150]}`)
+}
+
+section('W6 主体连通域计数')
+{
+  const W = 200
+  const H = 200
+  const alpha = new Uint8ClampedArray(W * H)
+  // 三块面积均 ≥ 0.5%（200×200 的 0.5% = 200 像素）
+  const paint = (x0, y0, w0, h0) => {
+    for (let y = y0; y < y0 + h0; y++) {
+      for (let x = x0; x < x0 + w0; x++) alpha[y * W + x] = 255
+    }
+  }
+  paint(20, 20, 30, 30)   // 900
+  paint(100, 20, 25, 25)  // 625
+  paint(20, 100, 20, 20)  // 400
+  const { count, total, largest } = countSubjectComponents(alpha, W, H)
+  check('已知 3 块主体 → 主体块数 = 3', count === 3, `count=${count}`)
+  check('前景像素总数 = 1925', total === 1925, `total=${total}`)
+  check('最大块面积 = 900', largest === 900, `largest=${largest}`)
 }
 
 /* ---------- 汇总 ---------- */

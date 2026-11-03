@@ -18,6 +18,7 @@
           <img v-if="t.thumb" :src="t.thumb" class="task-thumb" alt="" />
           <span class="t-name">{{ t.file.name }}</span>
           <span class="t-size">{{ formatSize(t.file.size) }}<template v-if="t.outSize"> → {{ formatSize(t.outSize) }}</template></span>
+          <span v-if="t.note" class="t-note">{{ t.note }}</span>
           <span class="t-status" :class="t.status">{{ statusText(t) }}</span>
           <span class="t-del" title="删除" @click="remove(i)">✕</span>
         </div>

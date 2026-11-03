@@ -349,11 +349,11 @@ function renderOutputs() {
 
 /**
  * 抠图 + 边缘精修，成功时更新 state 并渲染预览。
- * @returns {Promise<boolean>}
+ * @returns {Promise<{ ok:boolean, retried:number }>}
  */
 async function runSegmentation() {
   const img = sourceImage.value
-  if (!img) return false
+  if (!img) return { ok: false, retried: 0 }
   const w = img.naturalWidth
   const h = img.naturalHeight
 
@@ -367,7 +367,7 @@ async function runSegmentation() {
     imageData = ctx.getImageData(0, 0, w, h)
   } catch (e) {
     msgError('无法读取图片像素，请更换图片后重试')
-    return false
+    return { ok: false, retried: 0 }
   }
 
   const det = detectBackgroundColor(imageData)
@@ -376,7 +376,7 @@ async function runSegmentation() {
     mode.value = 'manual'
     tab.value = 'original'
     msgError('背景颜色不均匀，已切换为手动模式：请在预览图上左键点选背景、右键点选需保留的区域，然后点击「重新抠图」')
-    return false
+    return { ok: false, retried: 0 }
   }
 
   const seedOpts = mode.value === 'manual'
@@ -391,7 +391,7 @@ async function runSegmentation() {
   if (!seg.ok) {
     tab.value = 'original'
     msgError(seg.reason || '抠图失败，请尝试手动点选背景区域')
-    return false
+    return { ok: false, retried: 0 }
   }
 
   const cleaned = cleanMask(seg.mask, w, h)
@@ -403,7 +403,7 @@ async function runSegmentation() {
   drawCutout(decon, alpha)
   renderOutputs()
   tab.value = 'result'
-  return true
+  return { ok: true, retried: seg.retried || 0 }
 }
 
 async function recompute() {
@@ -433,6 +433,7 @@ function onSeedClick(e, type) {
 async function processHandler(tasks) {
   for (const t of tasks) {
     t.status = 'processing'
+    t.note = ''
     try {
       if (currentFile.value !== t.file) {
         resetSeeds()
@@ -452,11 +453,12 @@ async function processHandler(tasks) {
       clearCanvas(resultCanvasRef.value)
       drawOriginal()
 
-      const ok = await runSegmentation()
-      if (!ok) {
+      const res = await runSegmentation()
+      if (!res.ok) {
         t.status = 'failed'
         continue
       }
+      if (res.retried > 0) t.note = '（已自动优化边缘）'
 
       const blob = await canvasToBlob(resultCanvasRef.value, 'image/png')
       resultBlob.value = blob
