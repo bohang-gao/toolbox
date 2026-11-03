@@ -1,0 +1,162 @@
+[
+  {
+    "name": "/print 页面可打开",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "打印相关说明块存在",
+    "ok": true,
+    "detail": "打印相关说明浏览器安全模型不允许网页读取或枚举系统打印机，打印机列表只会出现在点击「继续打印」后弹出的系统打印窗口中。网页无法直接列出打印机列表。如果打印窗口里"
+  },
+  {
+    "name": "已添加 3 个文件",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "模态标题含页数",
+    "ok": true,
+    "detail": "准备打印 · 共 4 页"
+  },
+  {
+    "name": "设置汇总 纸张/方向/份数/边距/文件数",
+    "ok": true,
+    "detail": "纸张A4方向纵向每页份数1边距12mm文件数3"
+  },
+  {
+    "name": "提示条说明系统打印窗口",
+    "ok": true,
+    "detail": "下一步会打开系统打印窗口，在那里选择打印机、份数、是否双面。网页无法直接列出打印机列表。"
+  },
+  {
+    "name": "存在「没有打印机？导出 PDF」链接",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "确认阶段未调用 window.print",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "取消后未触发 print",
+    "ok": true,
+    "detail": "{\"calls\":0,\"style\":false,\"root\":false,\"overflow\":\"\"}"
+  },
+  {
+    "name": "取消后无残留遮罩/样式",
+    "ok": true,
+    "detail": "{\"calls\":0,\"style\":false,\"root\":false,\"overflow\":\"\"}"
+  },
+  {
+    "name": "取消后页面可继续操作",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "继续打印后调用 print 1 次",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "sheet/图片数量与设置一致",
+    "ok": true,
+    "detail": "{\"sheets\":4,\"imgs\":4,\"modal\":false,\"bodyOverflow\":\"hidden\",\"hasStyle\":true}"
+  },
+  {
+    "name": "打印时模态已关闭 / 样式注入 / overflow hidden",
+    "ok": true,
+    "detail": "{\"sheets\":4,\"imgs\":4,\"modal\":false,\"bodyOverflow\":\"hidden\",\"hasStyle\":true}"
+  },
+  {
+    "name": "打印后 toast「已完成打印设置」",
+    "ok": true,
+    "detail": "已完成打印设置"
+  },
+  {
+    "name": "打印后清理干净",
+    "ok": true,
+    "detail": "{\"modal\":false,\"style\":false,\"root\":false,\"overflow\":\"\"}"
+  },
+  {
+    "name": "导出 PDF 下载成功",
+    "ok": true,
+    "detail": "_p2_two_pages_print.pdf"
+  },
+  {
+    "name": "导出 PDF 页数正确 (4)",
+    "ok": true,
+    "detail": "pages=4"
+  },
+  {
+    "name": "导出 toast 说明可在任意设备打印",
+    "ok": true,
+    "detail": "已导出 PDF，可在任意设备打印（共 4 页）"
+  },
+  {
+    "name": "含失败项仍预估 4 页",
+    "ok": true,
+    "detail": "准备打印 · 共 4 页"
+  },
+  {
+    "name": "部分失败仍打印 4 张纸",
+    "ok": true,
+    "detail": "{\"sheets\":4,\"imgs\":4,\"modal\":false,\"bodyOverflow\":\"hidden\",\"hasStyle\":true}"
+  },
+  {
+    "name": "失败项汇总提示",
+    "ok": true,
+    "detail": "已完成打印设置 | 处理失败：_p2_corrupt.pdf"
+  },
+  {
+    "name": "部分失败仍提示已完成打印设置",
+    "ok": true,
+    "detail": "已完成打印设置 | 处理失败：_p2_corrupt.pdf"
+  },
+  {
+    "name": "重置后任务列表为空",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "全部失败不进入打印",
+    "ok": true,
+    "detail": "{\"calls\":0,\"modal\":false}"
+  },
+  {
+    "name": "全部失败 toast 报错",
+    "ok": true,
+    "detail": "_p2_corrupt.pdf：无法解析 PDF（可能已加密或文件损坏）：Invalid PDF structure. | 所有文件均处理失败，已取消打印"
+  },
+  {
+    "name": "30 页 PDF 预估页数",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "渲染阶段显示进度（第 x/30 页）",
+    "ok": true,
+    "detail": "正在准备打印 · 第 0/30 页"
+  },
+  {
+    "name": "渲染阶段模态按钮禁用",
+    "ok": true,
+    "detail": "[true,true]"
+  },
+  {
+    "name": "30 页渲染出 30 张纸",
+    "ok": true,
+    "detail": "{\"sheets\":30,\"imgs\":30,\"modal\":false,\"bodyOverflow\":\"hidden\",\"hasStyle\":true}"
+  },
+  {
+    "name": "无 console error",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "无 pageerror",
+    "ok": true,
+    "detail": ""
+  }
+]

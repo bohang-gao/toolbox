@@ -1,0 +1,222 @@
+[
+  {
+    "name": "/print 页面可打开",
+    "ok": true,
+    "detail": "Toolbox - 在线图文工具箱"
+  },
+  {
+    "name": "空态直接打印报错",
+    "ok": true,
+    "detail": "请先添加文件"
+  },
+  {
+    "name": "空态生成PDF报错",
+    "ok": true,
+    "detail": "请先添加文件"
+  },
+  {
+    "name": "非法 .txt 被拒绝",
+    "ok": true,
+    "detail": "_p2_not_allowed.txt：仅支持 PDF 或图片文件（JPG/PNG/WEBP/GIF/BMP）"
+  },
+  {
+    "name": "列表 3 行",
+    "ok": true,
+    "detail": "_p2_two_pages.pdf, _p2_img1.png, _p2_img2.png"
+  },
+  {
+    "name": "页数预估 4 页",
+    "ok": true,
+    "detail": "共 3 项 · 预计 4 页"
+  },
+  {
+    "name": "PDF 页数标签",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "下移排序",
+    "ok": true,
+    "detail": "_p2_img1.png|_p2_two_pages.pdf|_p2_img2.png"
+  },
+  {
+    "name": "上移排序",
+    "ok": true,
+    "detail": "_p2_two_pages.pdf|_p2_img1.png|_p2_img2.png"
+  },
+  {
+    "name": "删除项",
+    "ok": true,
+    "detail": "rows=2"
+  },
+  {
+    "name": "重新添加恢复 3 项",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "合并PDF 4 页",
+    "ok": true,
+    "detail": "pages=4 sizes=595.28x841.89,595.28x841.89,595.28x841.89,595.28x841.89"
+  },
+  {
+    "name": "合并PDF 首两张为 A4 (595.28x841.89)",
+    "ok": true,
+    "detail": "595.28x841.89,595.28x841.89,595.28x841.89,595.28x841.89"
+  },
+  {
+    "name": "合并PDF 图片页为 A4 尺寸",
+    "ok": true,
+    "detail": "595.28x841.89,595.28x841.89"
+  },
+  {
+    "name": "生成成功提示",
+    "ok": true,
+    "detail": "已生成 4 页可打印 PDF"
+  },
+  {
+    "name": "下载文件名",
+    "ok": true,
+    "detail": "_p2_two_pages_print.pdf"
+  },
+  {
+    "name": "直接打印 4 张纸 / 4 图",
+    "ok": true,
+    "detail": "{\"sheets\":4,\"imgs\":4}"
+  },
+  {
+    "name": "A4 纵向纸张尺寸",
+    "ok": true,
+    "detail": "210mm x 297mm"
+  },
+  {
+    "name": "@page 规则 A4 portrait",
+    "ok": true,
+    "detail": "@page{size:A4 portrait;margin:0}"
+  },
+  {
+    "name": "打印样式/容器已注入",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "打印后清理",
+    "ok": true,
+    "detail": "{\"style\":false,\"root\":false,\"overflow\":\"\"}"
+  },
+  {
+    "name": "每页2份 → 3 张纸 4 图",
+    "ok": true,
+    "detail": "{\"sheets\":3,\"imgs\":4}"
+  },
+  {
+    "name": "A3 横向 420x297mm",
+    "ok": true,
+    "detail": "420mm x 297mm"
+  },
+  {
+    "name": "@page A3 landscape margin:0",
+    "ok": true,
+    "detail": "@page{size:A3 landscape;margin:0}"
+  },
+  {
+    "name": "损坏 PDF 行标记失败",
+    "ok": true,
+    "detail": "无法解析 PDF（可能已加密或文件损坏）：Invalid PDF structure."
+  },
+  {
+    "name": "损坏 PDF 错误提示",
+    "ok": true,
+    "detail": "_p2_corrupt.pdf：无法解析 PDF（可能已加密或文件损坏）：Invalid PDF structure."
+  },
+  {
+    "name": "失败项不计入页数",
+    "ok": true,
+    "detail": "共 4 项 · 预计 4 页"
+  },
+  {
+    "name": "含失败项仍生成 4 页",
+    "ok": true,
+    "detail": "pages=4"
+  },
+  {
+    "name": "失败项总结提示",
+    "ok": true,
+    "detail": "处理失败：_p2_corrupt.pdf"
+  },
+  {
+    "name": "/c/pdf 出现「批量打印」卡片",
+    "ok": true,
+    "detail": "21 cards"
+  },
+  {
+    "name": "卡片可进入 /print",
+    "ok": true,
+    "detail": "http://localhost:5199/#/print"
+  },
+  {
+    "name": "搜索「打印」命中批量打印",
+    "ok": true,
+    "detail": "#/print :: 批量打印多文件一次打印，支持 PDF 与图片"
+  },
+  {
+    "name": "回归 首页",
+    "ok": true,
+    "detail": "常用工具 · 最近使用"
+  },
+  {
+    "name": "回归 /c/img",
+    "ok": true,
+    "detail": "图片工具 · 17 个"
+  },
+  {
+    "name": "回归 /c/pdf",
+    "ok": true,
+    "detail": "PDF 文档工具 · 21 个"
+  },
+  {
+    "name": "回归 /c/text",
+    "ok": true,
+    "detail": "文本编码工具 · 14 个"
+  },
+  {
+    "name": "回归 /c/recent",
+    "ok": true,
+    "detail": "常用工具"
+  },
+  {
+    "name": "回归 imagecompress",
+    "ok": true,
+    "detail": "图片压缩"
+  },
+  {
+    "name": "回归 pdfmerge",
+    "ok": true,
+    "detail": "PDF合并"
+  },
+  {
+    "name": "回归 base64",
+    "ok": true,
+    "detail": "Base64编码解码"
+  },
+  {
+    "name": "未知路由兜底到首页",
+    "ok": true,
+    "detail": "http://localhost:5199/#/ :: 常用工具 · 最近使用 | 图片工具 · 17 个 | 文档工具 · 21 个 | 其他工具 · 14 个"
+  },
+  {
+    "name": "侧边栏 5 个类目",
+    "ok": true,
+    "detail": "常用工具4→#/c/recent | 全部工具→#/ | 图片工具→#/c/img | PDF 文档工具→#/c/pdf | 文本编码工具→#/c/text"
+  },
+  {
+    "name": "无 console error",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "无 pageerror",
+    "ok": true,
+    "detail": ""
+  }
+]

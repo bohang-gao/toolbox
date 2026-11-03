@@ -1,0 +1,260 @@
+{
+  "results": [
+    {
+      "name": "imagecompress: tool-layout present",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "imagecompress: two columns",
+      "ok": true,
+      "detail": "812px 300px"
+    },
+    {
+      "name": "imagecompress: crumbs 2 links + current",
+      "ok": true,
+      "detail": "links=2 current=图片压缩"
+    },
+    {
+      "name": "imagecompress: hero + h1",
+      "ok": true,
+      "detail": "图片压缩"
+    },
+    {
+      "name": "imagecompress: hero icon bg tint",
+      "ok": true,
+      "detail": "color(srgb 0 0.505882 1 / 0.12)"
+    },
+    {
+      "name": "imagecompress: main card",
+      "ok": true,
+      "detail": "rgb(255, 255, 255)"
+    },
+    {
+      "name": "imagecompress: aside usage",
+      "ok": true,
+      "detail": "h3=使用说明 items=4"
+    },
+    {
+      "name": "imagecompress: step numbers",
+      "ok": true,
+      "detail": "1 添加文件 | 2 设置"
+    },
+    {
+      "name": "imagecompress: no green legacy box",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "name": "imagecompress: dashed upload zone",
+      "ok": true,
+      "detail": "dashed rgb(245, 249, 255) 160px"
+    },
+    {
+      "name": "pdfmerge: tool-layout present",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "pdfmerge: two columns",
+      "ok": true,
+      "detail": "812px 300px"
+    },
+    {
+      "name": "pdfmerge: crumbs 2 links + current",
+      "ok": true,
+      "detail": "links=2 current=PDF合并"
+    },
+    {
+      "name": "pdfmerge: hero + h1",
+      "ok": true,
+      "detail": "PDF合并"
+    },
+    {
+      "name": "pdfmerge: hero icon bg tint",
+      "ok": true,
+      "detail": "color(srgb 0.898039 0.301961 0.258824 / 0.12)"
+    },
+    {
+      "name": "pdfmerge: main card",
+      "ok": true,
+      "detail": "rgb(255, 255, 255)"
+    },
+    {
+      "name": "pdfmerge: aside usage",
+      "ok": true,
+      "detail": "h3=使用说明 items=3"
+    },
+    {
+      "name": "pdfmerge: step numbers",
+      "ok": true,
+      "detail": "1 添加文件 | 2 设置"
+    },
+    {
+      "name": "pdfmerge: no green legacy box",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "name": "base64: tool-layout present",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "base64: two columns",
+      "ok": true,
+      "detail": "812px 300px"
+    },
+    {
+      "name": "base64: crumbs 2 links + current",
+      "ok": true,
+      "detail": "links=2 current=Base64编码解码"
+    },
+    {
+      "name": "base64: hero + h1",
+      "ok": true,
+      "detail": "Base64编码解码"
+    },
+    {
+      "name": "base64: hero icon bg tint",
+      "ok": true,
+      "detail": "color(srgb 0.552941 0.776471 0.247059 / 0.12)"
+    },
+    {
+      "name": "base64: main card",
+      "ok": true,
+      "detail": "rgb(255, 255, 255)"
+    },
+    {
+      "name": "base64: aside usage",
+      "ok": true,
+      "detail": "h3=使用说明 items=3"
+    },
+    {
+      "name": "base64: step numbers",
+      "ok": true,
+      "detail": "1 输入 | 2 结果"
+    },
+    {
+      "name": "base64: no green legacy box",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "name": "print: tool-layout present",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "print: two columns",
+      "ok": true,
+      "detail": "812px 300px"
+    },
+    {
+      "name": "print: crumbs 2 links + current",
+      "ok": true,
+      "detail": "links=2 current=批量打印"
+    },
+    {
+      "name": "print: hero + h1",
+      "ok": true,
+      "detail": "批量打印"
+    },
+    {
+      "name": "print: hero icon bg tint",
+      "ok": true,
+      "detail": "color(srgb 0.898039 0.301961 0.258824 / 0.12)"
+    },
+    {
+      "name": "print: main card",
+      "ok": true,
+      "detail": "rgb(255, 255, 255)"
+    },
+    {
+      "name": "print: aside usage",
+      "ok": true,
+      "detail": "h3=使用说明 items=3"
+    },
+    {
+      "name": "print: step numbers",
+      "ok": true,
+      "detail": "1 添加文件 | 2 设置"
+    },
+    {
+      "name": "print: no green legacy box",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "name": "print: dashed upload zone",
+      "ok": true,
+      "detail": "dashed rgb(245, 249, 255) 160px"
+    },
+    {
+      "name": "idphoto: tool-layout present",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "idphoto: two columns",
+      "ok": true,
+      "detail": "812px 300px"
+    },
+    {
+      "name": "idphoto: crumbs 2 links + current",
+      "ok": true,
+      "detail": "links=2 current=证件照换底色"
+    },
+    {
+      "name": "idphoto: hero + h1",
+      "ok": true,
+      "detail": "证件照换底色"
+    },
+    {
+      "name": "idphoto: hero icon bg tint",
+      "ok": true,
+      "detail": "color(srgb 0 0.505882 1 / 0.12)"
+    },
+    {
+      "name": "idphoto: main card",
+      "ok": true,
+      "detail": "rgb(255, 255, 255)"
+    },
+    {
+      "name": "idphoto: aside usage",
+      "ok": true,
+      "detail": "h3=使用说明 items=1"
+    },
+    {
+      "name": "idphoto: step numbers",
+      "ok": true,
+      "detail": "1 添加文件 | 2 工具说明"
+    },
+    {
+      "name": "idphoto: no green legacy box",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "name": "idphoto: dashed upload zone",
+      "ok": true,
+      "detail": "dashed rgb(245, 249, 255) 160px"
+    },
+    {
+      "name": "mobile: single column",
+      "ok": true,
+      "detail": "868px"
+    },
+    {
+      "name": "mobile: aside below main",
+      "ok": true,
+      "detail": "pos=static below=true"
+    },
+    {
+      "name": "no console errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "consoleErrors": []
+}

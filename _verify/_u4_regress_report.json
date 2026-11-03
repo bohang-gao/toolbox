@@ -1,0 +1,346 @@
+{
+  "results": [
+    {
+      "name": "首页 200 且渲染",
+      "ok": true,
+      "detail": "cards=52"
+    },
+    {
+      "name": "首页 3 个分区 + 常用工具",
+      "ok": true,
+      "detail": "常用工具 · 最近使用 / 图片工具 · 17 个 / 文档工具 · 21 个 / 其他工具 · 14 个"
+    },
+    {
+      "name": "首页 52 张工具卡",
+      "ok": true,
+      "detail": "cards=52"
+    },
+    {
+      "name": "首页常用工具空态",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "侧边栏常驻 + 全部工具高亮",
+      "ok": true,
+      "detail": "active=全部工具"
+    },
+    {
+      "name": "/c/img 单分区 17 个",
+      "ok": true,
+      "detail": "cards=17 heads=图片工具 · 17 个"
+    },
+    {
+      "name": "/c/img 侧边栏高亮 图片工具",
+      "ok": true,
+      "detail": "active=图片工具"
+    },
+    {
+      "name": "/c/pdf 单分区 21 个",
+      "ok": true,
+      "detail": "cards=21 heads=PDF 文档工具 · 21 个"
+    },
+    {
+      "name": "/c/pdf 侧边栏高亮 PDF 文档工具",
+      "ok": true,
+      "detail": "active=PDF 文档工具"
+    },
+    {
+      "name": "/c/text 单分区 14 个",
+      "ok": true,
+      "detail": "cards=14 heads=文本编码工具 · 14 个"
+    },
+    {
+      "name": "/c/text 侧边栏高亮 文本编码工具",
+      "ok": true,
+      "detail": "active=文本编码工具"
+    },
+    {
+      "name": "/c/recent 空态展示",
+      "ok": true,
+      "detail": "你使用过的工具会出现在这里，先去逛逛吧 →"
+    },
+    {
+      "name": "/c/recent 有数据（3 个，按最近排序）",
+      "ok": true,
+      "detail": "PDF合并, 二维码制作, Base64编码解码"
+    },
+    {
+      "name": "侧边栏常用工具徽标",
+      "ok": true,
+      "detail": "badge=3"
+    },
+    {
+      "name": "搜索跳转 /?q=pdf",
+      "ok": true,
+      "detail": "#/?q=pdf"
+    },
+    {
+      "name": "搜索结果标题含数量",
+      "ok": true,
+      "detail": "搜索结果 · 22 个"
+    },
+    {
+      "name": "搜索结果过滤（≥1 且 <52）",
+      "ok": true,
+      "detail": "cards=22"
+    },
+    {
+      "name": "Esc 清空搜索并回首页",
+      "ok": true,
+      "detail": "{\"hash\":\"#/\",\"val\":\"\"}"
+    },
+    {
+      "name": "搜索空态",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "未知路由兜底首页",
+      "ok": true,
+      "detail": "#/"
+    },
+    {
+      "name": "imagecompress: 两栏 .tool-layout 含 300px 侧栏",
+      "ok": true,
+      "detail": "812px 300px"
+    },
+    {
+      "name": "imagecompress: 面包屑 2 链接 + 当前项",
+      "ok": true,
+      "detail": "全部工具 / 图片工具 / 图片压缩"
+    },
+    {
+      "name": "imagecompress: hero 标题",
+      "ok": true,
+      "detail": "图片压缩"
+    },
+    {
+      "name": "imagecompress: 主区卡片白底",
+      "ok": true,
+      "detail": "rgb(255, 255, 255)"
+    },
+    {
+      "name": "imagecompress: 侧栏使用说明 ≥2 条",
+      "ok": true,
+      "detail": "items=4"
+    },
+    {
+      "name": "pdfmerge: 两栏 .tool-layout 含 300px 侧栏",
+      "ok": true,
+      "detail": "812px 300px"
+    },
+    {
+      "name": "pdfmerge: 面包屑 2 链接 + 当前项",
+      "ok": true,
+      "detail": "全部工具 / 文档工具 / PDF合并"
+    },
+    {
+      "name": "pdfmerge: hero 标题",
+      "ok": true,
+      "detail": "PDF合并"
+    },
+    {
+      "name": "pdfmerge: 主区卡片白底",
+      "ok": true,
+      "detail": "rgb(255, 255, 255)"
+    },
+    {
+      "name": "pdfmerge: 侧栏使用说明 ≥2 条",
+      "ok": true,
+      "detail": "items=3"
+    },
+    {
+      "name": "base64: 两栏 .tool-layout 含 300px 侧栏",
+      "ok": true,
+      "detail": "812px 300px"
+    },
+    {
+      "name": "base64: 面包屑 2 链接 + 当前项",
+      "ok": true,
+      "detail": "全部工具 / 其他工具 / Base64编码解码"
+    },
+    {
+      "name": "base64: hero 标题",
+      "ok": true,
+      "detail": "Base64编码解码"
+    },
+    {
+      "name": "base64: 主区卡片白底",
+      "ok": true,
+      "detail": "rgb(255, 255, 255)"
+    },
+    {
+      "name": "base64: 侧栏使用说明 ≥2 条",
+      "ok": true,
+      "detail": "items=3"
+    },
+    {
+      "name": "qrcode: 两栏 .tool-layout 含 300px 侧栏",
+      "ok": true,
+      "detail": "812px 300px"
+    },
+    {
+      "name": "qrcode: 面包屑 2 链接 + 当前项",
+      "ok": true,
+      "detail": "全部工具 / 图片工具 / 二维码制作"
+    },
+    {
+      "name": "qrcode: hero 标题",
+      "ok": true,
+      "detail": "二维码制作"
+    },
+    {
+      "name": "qrcode: 主区卡片白底",
+      "ok": true,
+      "detail": "rgb(255, 255, 255)"
+    },
+    {
+      "name": "qrcode: 侧栏使用说明 ≥2 条",
+      "ok": true,
+      "detail": "items=3"
+    },
+    {
+      "name": "print: 两栏 .tool-layout 含 300px 侧栏",
+      "ok": true,
+      "detail": "812px 300px"
+    },
+    {
+      "name": "print: 面包屑 2 链接 + 当前项",
+      "ok": true,
+      "detail": "全部工具 / 文档工具 / 批量打印"
+    },
+    {
+      "name": "print: hero 标题",
+      "ok": true,
+      "detail": "批量打印"
+    },
+    {
+      "name": "print: 主区卡片白底",
+      "ok": true,
+      "detail": "rgb(255, 255, 255)"
+    },
+    {
+      "name": "print: 侧栏使用说明 ≥2 条",
+      "ok": true,
+      "detail": "items=3"
+    },
+    {
+      "name": "idphoto: 两栏 .tool-layout 含 300px 侧栏",
+      "ok": true,
+      "detail": "812px 300px"
+    },
+    {
+      "name": "idphoto: 面包屑 2 链接 + 当前项",
+      "ok": true,
+      "detail": "全部工具 / 图片工具 / 证件照换底色"
+    },
+    {
+      "name": "idphoto: hero 标题",
+      "ok": true,
+      "detail": "证件照换底色"
+    },
+    {
+      "name": "idphoto: 主区卡片白底",
+      "ok": true,
+      "detail": "rgb(255, 255, 255)"
+    },
+    {
+      "name": "idphoto: 侧栏使用说明 ≥1 条",
+      "ok": true,
+      "detail": "items=1"
+    },
+    {
+      "name": "imagecompress 移动端单栏",
+      "ok": true,
+      "detail": "{\"cols\":\"868px\",\"asidePosition\":\"static\",\"asideBelow\":true,\"hamburger\":\"flex\"}"
+    },
+    {
+      "name": "imagecompress 移动端汉堡按钮显示",
+      "ok": true,
+      "detail": "flex"
+    },
+    {
+      "name": "print 移动端单栏",
+      "ok": true,
+      "detail": "{\"cols\":\"868px\",\"asidePosition\":\"static\",\"asideBelow\":true,\"hamburger\":\"flex\"}"
+    },
+    {
+      "name": "print 移动端汉堡按钮显示",
+      "ok": true,
+      "detail": "flex"
+    },
+    {
+      "name": "抽屉：汉堡打开",
+      "ok": true,
+      "detail": "closedTransform=matrix(1, 0, 0, 1, -240, 0)"
+    },
+    {
+      "name": "抽屉：点遮罩关闭",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "抽屉：点菜单项跳转并关闭",
+      "ok": true,
+      "detail": "#/c/text"
+    },
+    {
+      "name": "DES 加密输出 Base64",
+      "ok": true,
+      "detail": "E9XMWb1iWuelLaR3ZiIB9Q=="
+    },
+    {
+      "name": "DES 解密还原明文",
+      "ok": true,
+      "detail": "U4 des test"
+    },
+    {
+      "name": "RSA 生成密钥对（公/私钥 PEM 非空）",
+      "ok": true,
+      "detail": "pub=450 priv=1707"
+    },
+    {
+      "name": "RSA 公钥加密输出 Base64",
+      "ok": true,
+      "detail": "len=344"
+    },
+    {
+      "name": "RSA 私钥解密还原明文",
+      "ok": true,
+      "detail": "U4 rsa test"
+    },
+    {
+      "name": "ocr: 占位页明确说明未实现",
+      "ok": true,
+      "detail": "该工具需要服务端处理，演示版未实现。"
+    },
+    {
+      "name": "ocr: 标题 + 面包屑一致",
+      "ok": true,
+      "detail": "图片转文字 links=2"
+    },
+    {
+      "name": "word2pdf: 占位页明确说明未实现",
+      "ok": true,
+      "detail": "该工具需要服务端处理，演示版未实现。"
+    },
+    {
+      "name": "word2pdf: 标题 + 面包屑一致",
+      "ok": true,
+      "detail": "Word转PDF links=2"
+    },
+    {
+      "name": "无 console error",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "无 pageerror",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "consoleErrors": [],
+  "pageErrors": []
+}

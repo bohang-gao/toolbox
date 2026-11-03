@@ -2,7 +2,7 @@
 
 Toolbox —— 基于 Vue 3 + Vite 的在线图片/文档/文本工具站（交互与视觉参考 imgtool.net，代码为独立实现）。
 
-**🌐 在线体验：https://bohang-gao.github.io/imgtool-clone/** （GitHub Pages，push main 自动部署）
+**🌐 在线体验：https://bohang-gao.github.io/toolbox/** （GitHub Pages，push main 自动部署）
 全部图片、PDF、文本处理均在浏览器本地完成，文件不上传服务器。
 
 ## 运行方式

@@ -1,0 +1,126 @@
+{
+  "results": [
+    {
+      "name": "/print 打开正常",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "打印说明块存在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "添加 3 个文件（1 PDF + 2 图片）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "预计 4 页（PDF 2 页 + 图片 2 张）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "确认模态标题含页数",
+      "ok": true,
+      "detail": "准备打印 · 共 4 页"
+    },
+    {
+      "name": "确认模态汇总设置",
+      "ok": true,
+      "detail": "纸张A4方向纵向每页份数1边距12mm文件数3"
+    },
+    {
+      "name": "确认阶段 window.print 计数为 0",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "取消后 window.print 计数仍为 0",
+      "ok": true,
+      "detail": "{\"calls\":0,\"style\":false,\"root\":false,\"overflow\":\"\"}"
+    },
+    {
+      "name": "取消后无残留样式/节点/overflow",
+      "ok": true,
+      "detail": "{\"calls\":0,\"style\":false,\"root\":false,\"overflow\":\"\"}"
+    },
+    {
+      "name": "继续打印后 window.print 恰好 1 次",
+      "ok": true,
+      "detail": "calls=1"
+    },
+    {
+      "name": "打印纸张/图片数 = 4",
+      "ok": true,
+      "detail": "{\"sheets\":4,\"imgs\":4,\"modal\":false,\"bodyOverflow\":\"hidden\",\"hasStyle\":true}"
+    },
+    {
+      "name": "打印时模态关闭 + 样式注入 + overflow hidden",
+      "ok": true,
+      "detail": "{\"sheets\":4,\"imgs\":4,\"modal\":false,\"bodyOverflow\":\"hidden\",\"hasStyle\":true}"
+    },
+    {
+      "name": "打印完成 toast",
+      "ok": true,
+      "detail": "已完成打印设置"
+    },
+    {
+      "name": "打印后清理干净",
+      "ok": true,
+      "detail": "{\"modal\":false,\"style\":false,\"root\":false,\"overflow\":\"\"}"
+    },
+    {
+      "name": "导出 PDF 下载成功",
+      "ok": true,
+      "detail": "_p2_two_pages_print.pdf"
+    },
+    {
+      "name": "导出 PDF 页数 = 4",
+      "ok": true,
+      "detail": "pages=4 size=4172"
+    },
+    {
+      "name": "导出 toast 文案",
+      "ok": true,
+      "detail": "已导出 PDF，可在任意设备打印（共 4 页）"
+    },
+    {
+      "name": "失败项不计入预估页数（仍 4 页）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "部分失败仍打印 4 张纸",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "失败项汇总提示",
+      "ok": true,
+      "detail": "已完成打印设置|处理失败：_p2_corrupt.pdf"
+    },
+    {
+      "name": "全部失败不进入打印",
+      "ok": true,
+      "detail": "{\"calls\":0,\"modal\":false}"
+    },
+    {
+      "name": "全部失败 toast 报错",
+      "ok": true,
+      "detail": "_p2_corrupt.pdf：无法解析 PDF（可能已加密或文件损坏）：Invalid PDF structure.|所有文件均处理失败，已取消打印"
+    },
+    {
+      "name": "无 console error",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "无 pageerror",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "consoleErrors": [],
+  "pageErrors": []
+}

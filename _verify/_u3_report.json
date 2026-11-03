@@ -1,0 +1,177 @@
+[
+  {
+    "name": "imageresize 处理完成并下载",
+    "ok": true,
+    "detail": "_u3_out_resize.png 759B"
+  },
+  {
+    "name": "imagerotate 处理完成并下载",
+    "ok": true,
+    "detail": "_u3_out_rotate.png 2408B"
+  },
+  {
+    "name": "image2jpg 输出真实 JPEG",
+    "ok": true,
+    "detail": "1132B magic=true"
+  },
+  {
+    "name": "image2png 输出真实 PNG",
+    "ok": true,
+    "detail": "2077B magic=true"
+  },
+  {
+    "name": "image2webp 输出真实 WebP",
+    "ok": true,
+    "detail": "680B magic=RIFF"
+  },
+  {
+    "name": "imagecombine 生成拼接长图",
+    "ok": true,
+    "detail": "_u3_out_combined.png 5048B"
+  },
+  {
+    "name": "pdfextract 提取 1-3,5 共 4 页",
+    "ok": true,
+    "detail": "pages=4"
+  },
+  {
+    "name": "pdfrotate 全部页面旋转 90°",
+    "ok": true,
+    "detail": "[90,90,90]"
+  },
+  {
+    "name": "pdfsort 输出 3 页",
+    "ok": true,
+    "detail": "pages=3"
+  },
+  {
+    "name": "pdfcompress 输出可解析 PDF",
+    "ok": true,
+    "detail": "pages=3 1256B"
+  },
+  {
+    "name": "pdf-metadata 写入标题并下载",
+    "ok": true,
+    "detail": "title=U3 Title"
+  },
+  {
+    "name": "pdf-resize 页面宽度统一为 595",
+    "ok": true,
+    "detail": "[595,595,595]"
+  },
+  {
+    "name": "pdf-extract-image 提取内嵌图片",
+    "ok": true,
+    "detail": "2077B magic=true"
+  },
+  {
+    "name": "pdf-remove-watermark 重建图片型 PDF",
+    "ok": true,
+    "detail": "pages=3"
+  },
+  {
+    "name": "pdf-to-long-image 生成长图",
+    "ok": true,
+    "detail": "97987B magic=true"
+  },
+  {
+    "name": "file_hash 输出 SHA-256",
+    "ok": true,
+    "detail": "b8df457be7830e6c0434…"
+  },
+  {
+    "name": "aes 加密输出 Base64 密文",
+    "ok": true,
+    "detail": "88 chars"
+  },
+  {
+    "name": "aes 解密还原明文",
+    "ok": true,
+    "detail": "U3 加密测试文本"
+  },
+  {
+    "name": "url 编码输出非空",
+    "ok": true,
+    "detail": "a%20b%26c%3D%E4%B8%AD%E6%96%87"
+  },
+  {
+    "name": "unicode 编码输出 \\uXXXX",
+    "ok": true,
+    "detail": "\\u4f60\\u597d"
+  },
+  {
+    "name": "regex 匹配 3 处并高亮",
+    "ok": true,
+    "detail": "rows=3 marks=3"
+  },
+  {
+    "name": "number 255 转换正确",
+    "ok": true,
+    "detail": "[\"11111111\",\"3333\",\"377\",\"255\",\"ff\",\"7v\"]"
+  },
+  {
+    "name": "color 输出 HEX/RGB/RGBA/HSL",
+    "ok": true,
+    "detail": "[\"#FF0000\",\"rgb(255, 0, 0)\",\"rgba(255, 0, 0, 1)\",\"hsl(0, 100%, 50%)\"]"
+  },
+  {
+    "name": "timestamp 输出本地/UTC 时间",
+    "ok": true,
+    "detail": "时间戳1730000000（秒）本地时间2024-10-27 11:33:20UTC 时间2024-10-27 03:33:20 UTC相对现在737 天前"
+  },
+  {
+    "name": "morse SOS 编码",
+    "ok": true,
+    "detail": "... --- ..."
+  },
+  {
+    "name": "hash SHA-256(abc) 正确",
+    "ok": true,
+    "detail": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+  },
+  {
+    "name": "qrcode 生成 dataURL 预览",
+    "ok": true,
+    "detail": "data:image/png;base64,iVBORw0KGgoAAAANSU…"
+  },
+  {
+    "name": "qrcode 下载 PNG",
+    "ok": true,
+    "detail": "3483B"
+  },
+  {
+    "name": "des 加密输出 Base64 密文",
+    "ok": true,
+    "detail": "/9453CeSvMtoQKJr9E/8JA=="
+  },
+  {
+    "name": "des 解密还原明文",
+    "ok": true,
+    "detail": "hello imgtool"
+  },
+  {
+    "name": "rsa 生成密钥对",
+    "ok": true,
+    "detail": "pub=450 priv=1703 msg=true"
+  },
+  {
+    "name": "rsa 公钥加密输出 Base64",
+    "ok": true,
+    "detail": "344 chars"
+  },
+  {
+    "name": "rsa 私钥解密还原明文",
+    "ok": true,
+    "detail": "U3 RSA 测试"
+  },
+  {
+    "name": "无 console error",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "无 pageerror",
+    "ok": true,
+    "detail": ""
+  }
+]

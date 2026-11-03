@@ -1,0 +1,13 @@
+const { chromium } = require('C:/Users/DELL/AppData/Local/hermes/hermes-agent/node_modules/playwright-core')
+;(async()=>{
+ const b=await chromium.launch({executablePath:'C:/Users/DELL/AppData/Local/ms-playwright/chromium-1234/chrome-win64/chrome.exe'})
+ const p=await b.newPage()
+ p.on('console',m=>console.log('CONSOLE',m.type(),m.text()))
+ p.on('pageerror',e=>console.log('PAGEERR',String(e)))
+ await p.goto('http://localhost:5199/#/color',{waitUntil:'networkidle'})
+ await p.waitForTimeout(1500)
+ console.log('URL',p.url())
+ console.log('H1', await p.locator('h1').allTextContents())
+ console.log('BODY', (await p.locator('body').textContent()).slice(0,300))
+ await b.close()
+})()

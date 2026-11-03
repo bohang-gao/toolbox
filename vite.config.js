@@ -6,7 +6,7 @@ const isPages = process.env.GH_PAGES === '1'
 
 export default defineConfig({
   plugins: [vue()],
-  base: isPages ? '/imgtool-clone/' : '/',
+  base: isPages ? '/toolbox/' : '/',
   server: { host: true, port: 5173 },
   build: {
     outDir: 'dist',
