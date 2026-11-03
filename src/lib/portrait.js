@@ -509,9 +509,21 @@ export function segmentAdaptive(imageData, opts = {}) {
   const withWarn = (r) => {
     if (opts.eraseSeeds && opts.eraseSeeds.length) return r   // 侵入式：结果由用户点选决定，不告警
     const compact = boundaryCompactness(r.alpha, imageData.width, imageData.height)
-    // 两类无声失败：边界被啃出毛边（compact 高）/ 主体被大面积吞食（背景占比异常高）
-    if (compact > COMPACT_WARN || r.coverage > 0.8) {
-      return { ...r, warning: '背景与主体颜色过于接近，自动抠图可能不完整；建议切换「手动点选」模式，右键点选脸部等需保留的区域后重新抠图' }
+    // 主体包围盒高度（占比）：全身照主体很高，被吞掉只剩肩部条带时很矮
+    let minY = Infinity, maxY = -1
+    for (let y = 0; y < imageData.height; y++) {
+      for (let x = 0; x < imageData.width; x++) {
+        if (r.alpha[y * imageData.width + x] > 128) {
+          if (y < minY) minY = y
+          if (y > maxY) maxY = y
+          break
+        }
+      }
+    }
+    const boxH = maxY >= 0 ? (maxY - minY + 1) / imageData.height : 0
+    // 两类无声失败：边界被啃出毛边（compact 高）/ 主体被大面积吞食（背景占比高且主体只剩矮条带）
+    if (compact > COMPACT_WARN || (r.coverage > 0.8 && boxH < 0.6)) {
+      return { ...r, warning: '背景与主体颜色过于接近，自动抠图可能不完整；建议切换「手动点选」模式，点选要去掉的背景区域后重新抠图' }
     }
     return r
   }

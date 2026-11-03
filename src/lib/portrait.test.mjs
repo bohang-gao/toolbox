@@ -855,6 +855,23 @@ section('W8 手动点选修补：侵入式只抠点选区域')
     `coverage=${(res.coverage * 100).toFixed(1)}% ok=${res.ok}`)
 }
 
+section('W9 高背景占比但不误报（全身照/主体瘦高）')
+{
+  const W = 200, H = 200
+  const img = makeImageData(W, H)
+  const d = img.data
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = (y * W + x) * 4
+    // 背景 83%，主体是贯穿 85% 画高的瘦高条（模拟全身照）
+    const inSubject = x >= 80 && x < 120 && y >= 15 && y < 185
+    const v = inSubject ? 90 : 246
+    d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255
+  }
+  const res = segmentAdaptive(img)
+  check('主体瘦高 + 背景占比高：不误报告警',
+    !res.warning && res.coverage > 0.8, `coverage=${(res.coverage * 100).toFixed(1)}% warning=${res.warning ? 'yes' : 'no'}`)
+}
+
 /* ---------- 汇总 ---------- */
 console.log(`\n===== 结果：${pass} 通过 / ${fail} 失败 =====`)
 if (fail > 0) process.exit(1)
