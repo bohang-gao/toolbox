@@ -1,8 +1,17 @@
 <template>
-  <div>
-    <h1 class="text-4xl">摩斯电码</h1>
-
-    <div class="tool-panel">
+  <ToolShell
+    path="/morse"
+    title="摩斯电码"
+    intro="摩斯电码（Morse Code）用短信号（·）与长信号（—）表示字母、数字和标点。本工具支持国际摩斯电码的双向转换，字母间以空格分隔、单词间以 / 分隔。"
+    :usage="[
+      '选择编码或解码模式，输入内容后结果实时更新。',
+      '编码时：字母间用空格分隔，单词间用 / 分隔；勾选「紧凑输出」则单词间也用空格。解码时兼容 ·/— 与 ./− 两种写法。',
+      '无法识别的字符会在结果中提示，不支持的符号不会输出。'
+    ]"
+  >
+    <div class="step-block">
+      <div class="step"><b>1</b> 输入与设置</div>
+      <div class="option-panel">
       <div class="flex flex-wrap items-center" style="gap:12px 20px">
         <span class="form-label">模式</span>
         <label class="el-radio"><input v-model="mode" type="radio" value="encode" />文本 → 摩斯电码</label>
@@ -40,30 +49,20 @@
 
       <div v-if="warn" class="mt-2" style="color:#e6a23c;font-size:14px">{{ warn }}</div>
 
-      <div class="mt-4 flex items-center flex-wrap" style="gap:12px">
+      <div class="step-actions">
         <button type="button" class="el-button el-button--primary" @click="swap">
           <span><i class="fa fa-exchange mr-1"></i> 结果回填到输入</span>
         </button>
         <button type="button" class="el-button el-button--info" @click="clearAll">清空</button>
       </div>
+      </div>
     </div>
-
-    <div class="mt-4 rounded-sm p-4" style="background-color:#dfd">
-      <h2 class="text-xl">工具介绍：</h2>
-      <p>摩斯电码（Morse Code）用短信号（·）与长信号（—）表示字母、数字和标点。本工具支持国际摩斯电码的双向转换，字母间以空格分隔、单词间以 / 分隔。</p>
-      <h2 class="mt-4 text-xl">使用说明：</h2>
-      <p style="white-space:pre-line">1. 选择编码或解码模式，输入内容后结果实时更新。
-2. 编码时：字母间用空格分隔，单词间用 / 分隔；勾选「紧凑输出」则单词间也用空格。解码时兼容 ·/— 与 ./− 两种写法。
-3. 无法识别的字符会在结果中提示，不支持的符号不会输出。</p>
-    </div>
-
-    <RelatedTools current="/morse" />
-  </div>
+  </ToolShell>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue'
-import RelatedTools from '../../components/RelatedTools.vue'
+import ToolShell from '../../components/ToolShell.vue'
 import { copyText } from './textkit.js'
 import { encodeMorse, decodeMorse } from './morskit.js'
 

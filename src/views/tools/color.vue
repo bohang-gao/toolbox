@@ -1,8 +1,17 @@
 <template>
-  <div>
-    <h1 class="text-4xl">颜色值转换</h1>
-
-    <div class="tool-panel">
+  <ToolShell
+    path="/color"
+    title="颜色值转换"
+    intro="在 RGB、HEX、RGBA、HSL 之间互转颜色值，输入任意一种格式即可自动识别，并提供色块实时预览与一键复制。"
+    :usage="[
+      '在输入框填写颜色值（如 #0081ff、rgb(0,129,255)、hsl(210,100%,50%)），或点击色块使用取色器。',
+      '下方会同时给出 HEX / RGB / RGBA / HSL 四种格式，点击「复制」即可取用。',
+      '拖动「不透明度」滑杆可调整 RGBA 中的 alpha 值，预览背景为棋盘格。'
+    ]"
+  >
+    <div class="step-block">
+      <div class="step"><b>1</b> 输入与设置</div>
+      <div class="option-panel">
       <div class="flex flex-wrap items-center" style="gap:12px 20px">
         <span class="form-label">颜色输入（自动识别格式）</span>
         <input
@@ -48,24 +57,14 @@
           <span style="min-width:44px;text-align:right;color:#606266">{{ alpha }}%</span>
         </div>
       </div>
+      </div>
     </div>
-
-    <div class="mt-4 rounded-sm p-4" style="background-color:#dfd">
-      <h2 class="text-xl">工具介绍：</h2>
-      <p>在 RGB、HEX、RGBA、HSL 之间互转颜色值，输入任意一种格式即可自动识别，并提供色块实时预览与一键复制。</p>
-      <h2 class="mt-4 text-xl">使用说明：</h2>
-      <p style="white-space:pre-line">1. 在输入框填写颜色值（如 #0081ff、rgb(0,129,255)、hsl(210,100%,50%)），或点击色块使用取色器。
-2. 下方会同时给出 HEX / RGB / RGBA / HSL 四种格式，点击「复制」即可取用。
-3. 拖动「不透明度」滑杆可调整 RGBA 中的 alpha 值，预览背景为棋盘格。</p>
-    </div>
-
-    <RelatedTools current="/color" />
-  </div>
+  </ToolShell>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue'
-import RelatedTools from '../../components/RelatedTools.vue'
+import ToolShell from '../../components/ToolShell.vue'
 import { copyText } from './textkit.js'
 import { rgbToHex, rgbToHsl, hexToRgb, parseColor } from './colorkit.js'
 

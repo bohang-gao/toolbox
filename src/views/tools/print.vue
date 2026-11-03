@@ -1,44 +1,55 @@
 <template>
-  <div>
-    <h1 class="text-4xl">批量打印</h1>
-
-    <div class="mt-4 flex flex-col">
-      <div class="file-upload flex flex-col justify-center"
-           :style="dragOver ? 'outline:3px dashed #fff' : ''"
+  <ToolShell
+    :path="route.path"
+    title="批量打印"
+    intro="把多个 PDF 与图片按列表顺序一次性打印，或导出为一个可打印的合并 PDF。所有处理均在浏览器本地完成，文件不会上传服务器。"
+    :usage="[
+      '点击上传区或「选择文件」添加 PDF / 图片（可多选、可分批添加），列表顺序即打印顺序，可用上移/下移调整。',
+      '选择纸张、方向、每页份数与页边距；「每页份数」只影响图片，PDF 页面始终 1 页 1 张。',
+      '「生成合并PDF」使用矢量复制/嵌入，保真度最高；「直接打印」会把 PDF 渲染为位图后调起系统打印对话框。'
+    ]"
+  >
+    <div class="step-block">
+      <div class="step"><b>1</b> 添加文件</div>
+      <div class="upload-zone" :class="{ 'is-drag': dragOver }"
            @click="addFiles" @dragover.prevent="dragOver = true" @dragleave="dragOver = false"
            @drop.prevent="onDrop">
-        <div class="el-upload-dragger">
-          <i class="fa fa-cloud-upload cloud-upload-item"></i>
-          <div>点击添加 PDF / 图片，或将文件拖到此处</div>
-          <div style="font-size:13px;opacity:.85;margin-top:4px">支持 PDF、JPG、PNG、WEBP、GIF、BMP，单文件 ≤50MB</div>
-        </div>
-      </div>
-
-      <div class="mt-4 flex justify-between flex-wrap print-toolbar">
-        <div class="flex items-center" style="gap:10px">
-          <button type="button" class="el-button el-button--primary" :disabled="busy" @click="addFiles">
-            <span><i class="fa fa-plus mr-1"></i> 添加文件</span>
-          </button>
-          <button type="button" class="el-button el-button--info" :disabled="busy || !items.length" @click="clearAll">
-            <span><i class="fa fa-trash-o mr-1"></i> 清空任务</span>
-          </button>
-        </div>
-        <div class="flex items-center" style="gap:10px">
-          <button type="button" class="el-button el-button--primary" :disabled="busy" @click="generatePdf">
-            <span><i class="fa fa-file-pdf-o mr-1"></i> 生成合并PDF</span>
-          </button>
-          <button type="button" class="el-button el-button--primary" :disabled="busy" @click="doPrint">
-            <span v-if="!printing"><i class="fa fa-print mr-1"></i> 直接打印</span>
-            <span v-else><i class="fa fa-spinner fa-spin mr-1"></i> 正在准备打印…（共 {{ estimate }} 页）</span>
-          </button>
-        </div>
+        <i class="fa fa-cloud-upload uz-icon"></i>
+        <div class="uz-main">点击或拖拽文件到此处</div>
+        <div class="uz-sub">支持 PDF、JPG、PNG、WEBP、GIF、BMP，单文件 ≤50MB</div>
+        <button type="button" class="uz-btn" :disabled="busy" @click.stop="addFiles">选择文件</button>
       </div>
 
       <div v-if="items.length" class="print-info mt-2">
         共 {{ items.length }} 项 · 预计 {{ estimate }} 页
       </div>
 
-      <div class="mt-4 option-panel">
+      <div v-if="items.length" class="task-list">
+        <div v-for="(t, i) in items" :key="t.id" class="task-item">
+          <span class="t-dot" :class="{ waiting: t.status !== 'failed', failed: t.status === 'failed' }"></span>
+          <img v-if="t.thumb" :src="t.thumb" class="task-thumb" alt="" />
+          <i v-else class="fa fa-file-pdf-o print-pdf-icon"></i>
+          <span class="t-name">{{ t.file.name }}</span>
+          <span class="print-type-tag" :class="t.kind">{{ typeLabel(t) }}</span>
+          <span class="t-size">{{ formatSize(t.file.size) }}</span>
+          <span v-if="t.status === 'reading'" class="t-status processing">读取中</span>
+          <span v-else-if="t.status === 'failed'" class="t-status failed" :title="t.error">失败</span>
+          <span class="print-actions">
+            <button type="button" class="print-move-btn" title="上移" :disabled="i === 0 || busy" @click="move(i, -1)">
+              <i class="fa fa-arrow-up"></i>
+            </button>
+            <button type="button" class="print-move-btn" title="下移" :disabled="i === items.length - 1 || busy" @click="move(i, 1)">
+              <i class="fa fa-arrow-down"></i>
+            </button>
+            <span class="t-del" title="删除" @click="remove(i)">✕</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-block">
+      <div class="step"><b>2</b> 设置</div>
+      <div class="option-panel">
         <div class="flex flex-wrap print-options">
           <label class="print-field">
             <span class="form-label">纸张</span>
@@ -85,48 +96,72 @@
           PDF 页面按原尺寸 1 页 1 张复制；仅图片按「每页份数」拼版。直接打印为位图渲染，文本型 PDF 建议先「生成合并PDF」再打印以保真。
         </p>
       </div>
+    </div>
 
-      <div v-if="items.length" class="task-list">
-        <div v-for="(t, i) in items" :key="t.id" class="task-item">
-          <img v-if="t.thumb" :src="t.thumb" class="task-thumb" alt="" />
-          <i v-else class="fa fa-file-pdf-o print-pdf-icon"></i>
-          <span class="t-name">{{ t.file.name }}</span>
-          <span class="print-type-tag" :class="t.kind">{{ typeLabel(t) }}</span>
-          <span class="t-size">{{ formatSize(t.file.size) }}</span>
-          <span v-if="t.status === 'reading'" class="t-status processing">读取中</span>
-          <span v-else-if="t.status === 'failed'" class="t-status failed" :title="t.error">失败</span>
-          <span class="print-actions">
-            <button type="button" class="print-move-btn" title="上移" :disabled="i === 0 || busy" @click="move(i, -1)">
-              <i class="fa fa-arrow-up"></i>
-            </button>
-            <button type="button" class="print-move-btn" title="下移" :disabled="i === items.length - 1 || busy" @click="move(i, 1)">
-              <i class="fa fa-arrow-down"></i>
-            </button>
-            <span class="t-del" title="删除" @click="remove(i)">✕</span>
-          </span>
+    <div class="step-actions">
+      <button type="button" class="el-button el-button--primary" :disabled="busy" @click="generatePdf">
+        <span><i class="fa fa-file-pdf-o mr-1"></i> 生成合并PDF</span>
+      </button>
+      <button type="button" class="el-button el-button--primary" :disabled="busy" @click="doPrint">
+        <span v-if="!printing"><i class="fa fa-print mr-1"></i> 直接打印</span>
+        <span v-else><i class="fa fa-spinner fa-spin mr-1"></i> 正在准备打印…（共 {{ estimate }} 页）</span>
+      </button>
+      <button type="button" class="el-button el-button--info" :disabled="busy || !items.length" @click="clearAll">
+        <span><i class="fa fa-trash-o mr-1"></i> 清空任务</span>
+      </button>
+    </div>
+
+    <div class="print-about">
+      <h3><i class="fa fa-info-circle"></i> 打印相关说明</h3>
+      <p>浏览器安全模型<strong>不允许网页读取或枚举系统打印机</strong>，打印机列表只会出现在点击「继续打印」后弹出的系统打印窗口中。网页无法直接列出打印机列表。</p>
+      <p>如果打印窗口里没有实体打印机、只能看到「另存为 PDF」，说明当前设备未安装可用打印机。可先用「生成合并PDF」导出文件，再在任意设备上打印。</p>
+    </div>
+
+    <!-- 打印前确认模态：选择打印机只能在系统打印窗口完成，这里先汇总设置 -->
+    <div v-if="confirmOpen" class="print-confirm" role="dialog" aria-modal="true"
+         aria-labelledby="print-confirm-title" @click.self="cancelConfirm">
+      <div class="print-confirm__card">
+        <h3 id="print-confirm-title" class="print-confirm__title">准备打印 · 共 {{ confirmInfo.pages }} 页</h3>
+        <dl class="print-confirm__summary">
+          <div><dt>纸张</dt><dd>{{ confirmInfo.paper }}</dd></div>
+          <div><dt>方向</dt><dd>{{ confirmInfo.orientation }}</dd></div>
+          <div><dt>每页份数</dt><dd>{{ confirmInfo.copies }}</dd></div>
+          <div><dt>边距</dt><dd>{{ confirmInfo.margin }}mm</dd></div>
+          <div><dt>文件数</dt><dd>{{ confirmInfo.files }}</dd></div>
+        </dl>
+        <div class="print-confirm__hint">
+          <i class="fa fa-info-circle"></i>
+          <span>下一步会打开<strong>系统打印窗口</strong>，在那里选择打印机、份数、是否双面。网页无法直接列出打印机列表。</span>
         </div>
+        <div v-if="rendering" class="print-confirm__progress">
+          <div class="print-confirm__progress-text">
+            <span>正在准备打印 · 第 {{ progress.current }}/{{ progress.total }} 页</span>
+            <span v-if="cancellable" class="print-confirm__cancel" role="button" tabindex="0"
+                  @click="cancelRendering" @keydown.enter="cancelRendering">取消准备</span>
+          </div>
+          <div class="print-confirm__bar"><span :style="{ width: progressPct + '%' }"></span></div>
+          <p v-if="cancellable" class="print-confirm__slow">准备已超过 30 秒，可点击「取消准备」放弃本次打印。</p>
+        </div>
+        <div class="print-confirm__actions">
+          <button type="button" class="el-button" :disabled="rendering" @click="cancelConfirm">取消</button>
+          <button type="button" class="el-button el-button--primary" :disabled="rendering" @click="beginPrint">
+            <span v-if="!rendering"><i class="fa fa-print mr-1"></i> 继续打印</span>
+            <span v-else><i class="fa fa-spinner fa-spin mr-1"></i> 正在准备…</span>
+          </button>
+        </div>
+        <button type="button" class="print-confirm__pdf-link" :disabled="rendering" @click="exportFromConfirm">
+          没有打印机？导出 PDF
+        </button>
       </div>
     </div>
-
-    <div class="mt-4 rounded-sm p-4" style="background-color:#dfd">
-      <h2 class="text-xl">工具介绍：</h2>
-      <p>把多个 PDF 与图片按列表顺序一次性打印，或导出为一个可打印的合并 PDF。所有处理均在浏览器本地完成，文件不会上传服务器。</p>
-      <h2 class="mt-4 text-xl">使用说明：</h2>
-      <p style="white-space:pre-line">1. 点击上传区或「添加文件」选择 PDF / 图片（可多选、可分批添加），列表顺序即打印顺序，可用上移/下移调整。
-2. 选择纸张、方向、每页份数与页边距；「每页份数」只影响图片，PDF 页面始终 1 页 1 张。
-3. 「生成合并PDF」使用矢量复制/嵌入，保真度最高；「直接打印」会把 PDF 渲染为位图后调起系统打印对话框。
-提示：直接打印为位图渲染，文本型 PDF 建议先「生成合并PDF」再打印以保真。</p>
-    </div>
-
-    <RelatedTools :current="route.path" />
-  </div>
+  </ToolShell>
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, reactive, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { PDFDocument } from 'pdf-lib'
-import RelatedTools from '../../components/RelatedTools.vue'
+import ToolShell from '../../components/ToolShell.vue'
 import {
   MAX_SIZE, formatSize, loadImage, msgError, msgSuccess, downloadBlob,
   validate, pickFiles, canvasToBlob, baseName
@@ -157,6 +192,24 @@ const generating = ref(false)
 const printing = ref(false)
 const busy = computed(() => generating.value || printing.value)
 const estimate = computed(() => buildJobs(items, copies.value).length)
+
+/* 打印前确认层 */
+const confirmOpen = ref(false)
+const phase = ref('confirm') // confirm | rendering
+const confirmInfo = reactive({ pages: 0, paper: 'A4', orientation: '纵向', copies: 1, margin: 12, files: 0 })
+const progress = reactive({ current: 0, total: 0 })
+const elapsed = ref(0)
+const cancelRequested = ref(false)
+const rendering = computed(() => phase.value === 'rendering')
+const cancellable = computed(() => rendering.value && elapsed.value >= 30)
+const progressPct = computed(() => progress.total
+  ? Math.min(100, Math.round((progress.current / progress.total) * 100))
+  : 0)
+
+const ORIENTATION_LABEL = { portrait: '纵向', landscape: '横向' }
+const CANCEL_MARK = '__print_cancelled__'
+const NO_CONTENT_MARK = '__print_no_content__'
+let ticker = null
 
 let seq = 0
 
@@ -246,7 +299,10 @@ function clearAll() {
   items.splice(0)
 }
 
-onBeforeUnmount(clearAll)
+onBeforeUnmount(() => {
+  stopTicker()
+  clearAll()
+})
 
 /* ---------- 版面计算 ---------- */
 function sheetSize() {
@@ -348,7 +404,7 @@ function placeOnCell(page, entry, cellX, cellY, cellW, cellH) {
   })
 }
 
-async function generatePdf() {
+async function generatePdf(opts = {}) {
   if (!items.length) { msgError('请先添加文件'); return }
   if (busy.value) return
   if (items.some(t => t.status === 'reading')) { msgError('正在读取 PDF 页数，请稍候'); return }
@@ -417,12 +473,14 @@ async function generatePdf() {
 
     pages = out.getPageCount()
     if (!pages) {
-      msgError('没有可打印的内容')
+      msgError(failures.length >= items.length
+        ? '所有文件均处理失败，无法导出 PDF'
+        : '没有可打印的内容')
       return
     }
     const bytes = await out.save()
     downloadBlob(new Blob([bytes], { type: 'application/pdf' }), `${firstBaseName(items)}_print.pdf`)
-    msgSuccess(`已生成 ${pages} 页可打印 PDF`)
+    msgSuccess(opts.doneText ? opts.doneText(pages) : `已生成 ${pages} 页可打印 PDF`)
     reportFailures(failures)
   } catch (e) {
     console.error(e)
@@ -430,6 +488,68 @@ async function generatePdf() {
   } finally {
     generating.value = false
   }
+}
+
+/* ---------- 打印前确认层 ---------- */
+function startTicker() {
+  stopTicker()
+  elapsed.value = 0
+  ticker = setInterval(() => { elapsed.value += 1 }, 1000)
+}
+
+function stopTicker() {
+  if (ticker) { clearInterval(ticker); ticker = null }
+}
+
+function closeConfirm() {
+  confirmOpen.value = false
+  phase.value = 'confirm'
+  stopTicker()
+}
+
+function cancelConfirm() {
+  if (rendering.value) return
+  closeConfirm()
+}
+
+function cancelRendering() {
+  if (!rendering.value) return
+  cancelRequested.value = true
+}
+
+// 「直接打印」不立刻调用 window.print：先汇总设置并说明打印机只在系统窗口中可选
+function doPrint() {
+  if (!items.length) { msgError('请先添加文件'); return }
+  if (busy.value || confirmOpen.value) return
+  if (items.some(t => t.status === 'reading')) { msgError('正在读取 PDF 页数，请稍候'); return }
+
+  const total = buildJobs(items, copies.value).length
+  if (!total) {
+    msgError(items.length && items.every(t => t.status === 'failed')
+      ? '所有文件均处理失败，已取消打印'
+      : '没有可打印的内容，已取消打印')
+    return
+  }
+
+  confirmInfo.pages = total
+  confirmInfo.paper = paper.value
+  confirmInfo.orientation = ORIENTATION_LABEL[orientation.value] || '纵向'
+  confirmInfo.copies = copies.value
+  confirmInfo.margin = margin.value
+  confirmInfo.files = items.length
+  progress.current = 0
+  progress.total = total
+  elapsed.value = 0
+  cancelRequested.value = false
+  phase.value = 'confirm'
+  confirmOpen.value = true
+}
+
+// 「没有打印机？导出 PDF」：复用合并 PDF 逻辑，直接下载
+async function exportFromConfirm() {
+  if (rendering.value) return
+  closeConfirm()
+  await generatePdf({ doneText: (pages) => `已导出 PDF，可在任意设备打印（共 ${pages} 页）` })
 }
 
 /* ---------- 动作 2：直接打印 ---------- */
@@ -509,14 +629,25 @@ function alreadyFailedNames() {
   return items.filter((it) => it.status === 'failed').map((it) => it.file.name)
 }
 
-async function doPrint() {
-  if (!items.length) { msgError('请先添加文件'); return }
-  if (busy.value) return
+async function beginPrint() {
+  if (rendering.value || busy.value) return
   if (items.some(t => t.status === 'reading')) { msgError('正在读取 PDF 页数，请稍候'); return }
 
-  printing.value = true
-  const failures = alreadyFailedNames()
   const jobs = buildJobs(items, copies.value)
+  if (!jobs.length) {
+    closeConfirm()
+    msgError('所有文件均处理失败，已取消打印')
+    return
+  }
+
+  phase.value = 'rendering'
+  printing.value = true
+  cancelRequested.value = false
+  progress.current = 0
+  progress.total = jobs.length
+  startTicker()
+
+  const failures = alreadyFailedNames()
   const pdfCache = new Map()
   const styleEl = document.createElement('style')
   styleEl.id = 'print-style'
@@ -526,15 +657,13 @@ async function doPrint() {
   root.className = 'print-root'
   document.body.appendChild(root)
   const prevOverflow = document.body.style.overflow
-  document.body.style.overflow = 'hidden'
 
   try {
-    if (!jobs.length) { msgError('没有可打印的内容'); return }
-
     const sheet = sheetSize()
     const m = margin.value
 
     for (const job of jobs) {
+      if (cancelRequested.value) throw new Error(CANCEL_MARK)
       if (job.kind === 'pdf') {
         const it = job.item
         try {
@@ -552,23 +681,28 @@ async function doPrint() {
           it.status = 'failed'
           it.error = e.message || String(e)
         }
+        progress.current += 1
         continue
       }
 
       const live = job.items.filter((it) => it.status !== 'failed')
-      if (!live.length) continue
-      // 最后一批不足份数时按实际数量排版，避免图片挤在角落
-      const { cols, rows } = cellsFor(live.length, sheet)
-      const { cw, ch } = cellSize(sheet, m, cols, rows)
-      const sheetEl = createSheet()
-      for (const it of live) {
-        const src = it.thumb || URL.createObjectURL(it.file)
-        addImgToSheet(sheetEl, src, cw, ch, it.id)
+      if (live.length) {
+        // 最后一批不足份数时按实际数量排版，避免图片挤在角落
+        const { cols, rows } = cellsFor(live.length, sheet)
+        const { cw, ch } = cellSize(sheet, m, cols, rows)
+        const sheetEl = createSheet()
+        for (const it of live) {
+          const src = it.thumb || URL.createObjectURL(it.file)
+          addImgToSheet(sheetEl, src, cw, ch, it.id)
+        }
+        root.appendChild(sheetEl)
       }
-      root.appendChild(sheetEl)
+      progress.current += 1
     }
 
+    // 某项失败不阻断其它项；全部失败则不进入打印
     await waitForImages(root)
+    if (cancelRequested.value) throw new Error(CANCEL_MARK)
 
     // 移除加载失败的图片与空纸
     root.querySelectorAll('img[data-failed="1"]').forEach((img) => {
@@ -583,23 +717,36 @@ async function doPrint() {
     })
     root.querySelectorAll('.print-sheet').forEach((s) => { if (!s.children.length) s.remove() })
 
-    if (!root.querySelector('.print-sheet')) {
-      msgError('没有可打印的内容')
-      return
-    }
+    if (!root.querySelector('.print-sheet')) throw new Error(NO_CONTENT_MARK)
 
+    if (failures.length) reportFailures(failures)
+
+    // 渲染完成，关闭确认层后进入系统打印窗口（等 DOM 更新完再调 print）
+    closeConfirm()
+    await nextTick()
+    document.body.style.overflow = 'hidden'
     window.print()
     await waitAfterPrint()
-    if (failures.length) reportFailures(failures)
+    msgSuccess('已完成打印设置')
   } catch (e) {
-    console.error(e)
-    msgError(`打印准备失败：${e.message || e}`)
+    if (e.message === CANCEL_MARK) {
+      msgError('已取消打印准备，未打开打印窗口')
+    } else if (e.message === NO_CONTENT_MARK) {
+      msgError(failures.length >= items.length
+        ? '所有文件均处理失败，已取消打印'
+        : '没有可打印的内容，已取消打印')
+    } else {
+      console.error(e)
+      msgError(`打印准备失败：${e.message || e}`)
+    }
   } finally {
+    stopTicker()
     for (const doc of pdfCache.values()) closePdf(doc)
     root.remove()
     styleEl.remove()
     document.body.style.overflow = prevOverflow
     printing.value = false
+    if (confirmOpen.value) closeConfirm()
   }
 }
 </script>

@@ -1,8 +1,17 @@
 <template>
-  <div>
-    <h1 class="text-4xl">AES加密解密</h1>
-
-    <div class="tool-panel">
+  <ToolShell
+    path="/aes"
+    title="AES加密解密"
+    intro="基于浏览器 Web Crypto API 的 AES-GCM 加密与解密：用 PBKDF2-SHA256 从口令派生 256 位密钥，每次加密随机生成盐与 IV，全部在本地完成。"
+    :usage="[
+      '输入口令（加密与解密必须一致），选择模式。',
+      '加密时输入明文，点击「加密」得到 Base64 密文；解密时粘贴该密文并点击「解密」。',
+      '口令错误或密文被篡改时，AES-GCM 校验失败会提示解密失败。'
+    ]"
+  >
+    <div class="step-block">
+      <div class="step"><b>1</b> 输入与设置</div>
+      <div class="option-panel">
       <div class="flex flex-wrap items-center" style="gap:12px 20px">
         <span class="form-label">模式</span>
         <label class="el-radio"><input v-model="mode" type="radio" value="encrypt" />加密</label>
@@ -36,14 +45,6 @@
         ></textarea>
       </div>
 
-      <div class="mt-4 flex items-center flex-wrap" style="gap:12px">
-        <button type="button" class="el-button el-button--primary" :disabled="busy" @click="run">
-          <span><i class="fa fa-user-secret mr-1"></i> {{ mode === 'encrypt' ? '加密' : '解密' }}</span>
-        </button>
-        <button type="button" class="el-button el-button--info" :disabled="busy" @click="clearAll">清空</button>
-        <span v-if="!cryptoOk" style="color:#f56c6c;font-size:14px">当前环境不支持 Web Crypto（需要 HTTPS 或 localhost 访问）</span>
-      </div>
-
       <div v-if="output" class="mt-4">
         <div class="flex justify-between items-center">
           <span class="form-label">输出结果</span>
@@ -55,24 +56,22 @@
       <div class="mt-4" style="font-size:13px;color:#e6a23c;background:#fdf6ec;border:1px solid #faecd8;border-radius:4px;padding:10px 12px">
         注意：本工具使用 AES-GCM + PBKDF2(SHA-256) 的标准实现，密文格式为 Base64(盐16字节 + IV12字节 + 密文)，与部分网站（含原站）的算法与密文格式可能不同，无法直接互通。
       </div>
-    </div>
 
-    <div class="mt-4 rounded-sm p-4" style="background-color:#dfd">
-      <h2 class="text-xl">工具介绍：</h2>
-      <p>基于浏览器 Web Crypto API 的 AES-GCM 加密与解密：用 PBKDF2-SHA256 从口令派生 256 位密钥，每次加密随机生成盐与 IV，全部在本地完成。</p>
-      <h2 class="mt-4 text-xl">使用说明：</h2>
-      <p style="white-space:pre-line">1. 输入口令（加密与解密必须一致），选择模式。
-2. 加密时输入明文，点击「加密」得到 Base64 密文；解密时粘贴该密文并点击「解密」。
-3. 口令错误或密文被篡改时，AES-GCM 校验失败会提示解密失败。</p>
+      <div class="step-actions">
+        <span v-if="!cryptoOk" style="color:#f56c6c;font-size:14px">当前环境不支持 Web Crypto（需要 HTTPS 或 localhost 访问）</span>
+        <button type="button" class="el-button el-button--primary" :disabled="busy" @click="run">
+          <span><i class="fa fa-user-secret mr-1"></i> {{ mode === 'encrypt' ? '加密' : '解密' }}</span>
+        </button>
+        <button type="button" class="el-button el-button--info" :disabled="busy" @click="clearAll">清空</button>
+      </div>
+      </div>
     </div>
-
-    <RelatedTools current="/aes" />
-  </div>
+  </ToolShell>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import RelatedTools from '../../components/RelatedTools.vue'
+import ToolShell from '../../components/ToolShell.vue'
 import { msgError, msgSuccess } from '../../lib/ui.js'
 import { copyText, bytesToBase64, base64ToBytes } from './textkit.js'
 

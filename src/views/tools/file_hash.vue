@@ -1,78 +1,81 @@
 <template>
-  <div>
-    <h1 class="text-4xl">文件Hash计算</h1>
-
-    <div class="tool-panel">
-      <div class="flex flex-wrap items-center" style="gap:12px 20px">
-        <span class="form-label">算法</span>
-        <label v-for="a in ALGORITHMS" :key="a.value" class="el-radio">
-          <input v-model="selected" type="checkbox" :value="a.value" :disabled="busy" />{{ a.label }}
-        </label>
-        <label class="el-radio"><input v-model="upper" type="checkbox" :disabled="busy" />大写输出</label>
+  <ToolShell
+    path="/file_hash"
+    title="文件Hash计算"
+    intro="计算本地文件的 SHA-256 / SHA-512 等摘要值，文件全程留在浏览器内存中，不会上传服务器，可用于校验下载文件的完整性。"
+    :usage="[
+      '点击上传区选择文件，或直接把文件拖入。',
+      '勾选需要的算法后点击「计算 Hash」，进度条显示读取进度。',
+      '复制结果与官方发布的校验值比对即可确认文件是否一致。'
+    ]"
+  >
+    <div class="step-block">
+      <div class="step"><b>1</b> 添加文件</div>
+      <div class="upload-zone" :class="{ 'is-drag': dragOver }"
+           @click="pick"
+           @dragover.prevent="dragOver=true"
+           @dragleave="dragOver=false"
+           @drop.prevent="onDrop">
+        <i class="fa fa-cloud-upload uz-icon"></i>
+        <div class="uz-main">{{ file ? file.name : '点击或拖拽文件到此处' }}</div>
+        <div class="uz-sub">{{ file ? formatSize(file.size) : '支持任意文件，单文件 ≤50MB' }}</div>
+        <button type="button" class="uz-btn" :disabled="busy" @click.stop="pick">选择文件</button>
       </div>
+    </div>
 
-      <div class="mt-4">
-        <div class="file-upload flex flex-col justify-center"
-             :style="dragOver ? 'outline:3px dashed #fff' : ''"
-             @click="pick"
-             @dragover.prevent="dragOver=true"
-             @dragleave="dragOver=false"
-             @drop.prevent="onDrop">
-          <div class="el-upload-dragger">
-            <i class="fa fa-cloud-upload cloud-upload-item"></i>
-            <div>{{ file ? file.name : '点击选择文件，或将文件拖到此处' }}</div>
-            <div v-if="file" style="margin-top:6px;font-size:13px;opacity:.85">{{ formatSize(file.size) }}</div>
+    <div class="step-block">
+      <div class="step"><b>2</b> 设置</div>
+      <div class="option-panel">
+        <div class="flex flex-wrap items-center" style="gap:12px 20px">
+          <span class="form-label">算法</span>
+          <label v-for="a in ALGORITHMS" :key="a.value" class="el-radio">
+            <input v-model="selected" type="checkbox" :value="a.value" :disabled="busy" />{{ a.label }}
+          </label>
+          <label class="el-radio"><input v-model="upper" type="checkbox" :disabled="busy" />大写输出</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-block">
+      <div class="step"><b>3</b> 结果</div>
+      <div class="option-panel">
+        <div v-if="busy || progress > 0" class="mt-4">
+          <div class="flex justify-between items-center" style="font-size:13px;color:#606266">
+            <span>{{ busy ? '正在计算…' : '完成' }}</span>
+            <span>{{ progress }}%</span>
+          </div>
+          <div class="progress-track mt-2">
+            <div class="progress-bar" :style="{ width: progress + '%' }"></div>
           </div>
         </div>
-      </div>
 
-      <div class="mt-4 flex items-center flex-wrap" style="gap:12px">
-        <button type="button" class="el-button el-button--primary" :disabled="busy || !file" @click="run">
-          <span><i class="fa fa-calculator mr-1"></i> 计算 Hash</span>
-        </button>
-        <button type="button" class="el-button el-button--info" :disabled="busy" @click="clearAll">清空</button>
-        <span v-if="!cryptoOk" style="color:#f56c6c;font-size:14px">当前环境不支持 Web Crypto（需要 HTTPS 或 localhost 访问）</span>
-      </div>
-
-      <div v-if="busy || progress > 0" class="mt-4">
-        <div class="flex justify-between items-center" style="font-size:13px;color:#606266">
-          <span>{{ busy ? '正在计算…' : '完成' }}</span>
-          <span>{{ progress }}%</span>
+        <div v-if="results.length" class="mt-4">
+          <div v-for="row in results" :key="row.value" class="hash-row">
+            <span class="hash-row-label">{{ row.label }}</span>
+            <span class="hash-row-value">{{ row.hash }}</span>
+            <button type="button" class="el-button copy-btn" style="padding:6px 12px" @click="copyText(row.hash, row.label + ' 已复制')">复制</button>
+          </div>
         </div>
-        <div class="progress-track mt-2">
-          <div class="progress-bar" :style="{ width: progress + '%' }"></div>
-        </div>
-      </div>
 
-      <div v-if="results.length" class="mt-4">
-        <div v-for="row in results" :key="row.value" class="hash-row">
-          <span class="hash-row-label">{{ row.label }}</span>
-          <span class="hash-row-value">{{ row.hash }}</span>
-          <button type="button" class="el-button copy-btn" style="padding:6px 12px" @click="copyText(row.hash, row.label + ' 已复制')">复制</button>
+        <div class="mt-2" style="font-size:12px;color:#909399">
+          大文件会分块读取（每块 4MB）以显示进度；最终摘要由 crypto.subtle.digest 计算。
         </div>
-      </div>
-
-      <div class="mt-2" style="font-size:12px;color:#909399">
-        大文件会分块读取（每块 4MB）以显示进度；最终摘要由 crypto.subtle.digest 计算。
       </div>
     </div>
 
-    <div class="mt-4 rounded-sm p-4" style="background-color:#dfd">
-      <h2 class="text-xl">工具介绍：</h2>
-      <p>计算本地文件的 SHA-256 / SHA-512 等摘要值，文件全程留在浏览器内存中，不会上传服务器，可用于校验下载文件的完整性。</p>
-      <h2 class="mt-4 text-xl">使用说明：</h2>
-      <p style="white-space:pre-line">1. 点击上传区选择文件，或直接把文件拖入。
-2. 勾选需要的算法后点击「计算 Hash」，进度条显示读取进度。
-3. 复制结果与官方发布的校验值比对即可确认文件是否一致。</p>
+    <div class="step-actions">
+      <span v-if="!cryptoOk" style="color:#f56c6c;font-size:14px">当前环境不支持 Web Crypto（需要 HTTPS 或 localhost 访问）</span>
+      <button type="button" class="el-button el-button--primary" :disabled="busy || !file" @click="run">
+        <span><i class="fa fa-calculator mr-1"></i> 计算 Hash</span>
+      </button>
+      <button type="button" class="el-button el-button--info" :disabled="busy" @click="clearAll">清空</button>
     </div>
-
-    <RelatedTools current="/file_hash" />
-  </div>
+  </ToolShell>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import RelatedTools from '../../components/RelatedTools.vue'
+import ToolShell from '../../components/ToolShell.vue'
 import { pickFiles, msgError, msgSuccess, formatSize } from '../../lib/ui.js'
 import { copyText } from './textkit.js'
 

@@ -1,8 +1,17 @@
 <template>
-  <div>
-    <h1 class="text-4xl">正则表达式测试</h1>
-
-    <div class="tool-panel">
+  <ToolShell
+    path="/regex"
+    title="正则表达式测试"
+    intro="在线调试 JavaScript 正则表达式，实时高亮匹配片段并列出每一处匹配的位置与捕获组，便于验证复杂模式。"
+    :usage="[
+      '输入正则表达式与 flags（g/i/m/s/u/y），或勾选下方常用 flag。',
+      '在测试文本中实时高亮匹配结果，匹配列表显示序号、内容、起始位置与捕获组。',
+      '语法错误会直接提示；未加 g 标志时只返回首个匹配。'
+    ]"
+  >
+    <div class="step-block">
+      <div class="step"><b>1</b> 输入与设置</div>
+      <div class="option-panel">
       <div class="flex flex-wrap items-center" style="gap:12px 16px">
         <span class="form-label">正则表达式</span>
         <span style="color:#909399">/</span>
@@ -69,27 +78,17 @@
         </div>
       </div>
 
-      <div class="mt-4 flex items-center flex-wrap" style="gap:12px">
+      <div class="step-actions">
         <button type="button" class="el-button el-button--info" @click="clearAll">清空</button>
       </div>
+      </div>
     </div>
-
-    <div class="mt-4 rounded-sm p-4" style="background-color:#dfd">
-      <h2 class="text-xl">工具介绍：</h2>
-      <p>在线调试 JavaScript 正则表达式，实时高亮匹配片段并列出每一处匹配的位置与捕获组，便于验证复杂模式。</p>
-      <h2 class="mt-4 text-xl">使用说明：</h2>
-      <p style="white-space:pre-line">1. 输入正则表达式与 flags（g/i/m/s/u/y），或勾选下方常用 flag。
-2. 在测试文本中实时高亮匹配结果，匹配列表显示序号、内容、起始位置与捕获组。
-3. 语法错误会直接提示；未加 g 标志时只返回首个匹配。</p>
-    </div>
-
-    <RelatedTools current="/regex" />
-  </div>
+  </ToolShell>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue'
-import RelatedTools from '../../components/RelatedTools.vue'
+import ToolShell from '../../components/ToolShell.vue'
 import { runRegex, buildHighlight } from './regexkit.js'
 
 const FLAG_OPTIONS = [

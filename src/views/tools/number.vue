@@ -1,8 +1,17 @@
 <template>
-  <div>
-    <h1 class="text-4xl">进制转换</h1>
-
-    <div class="tool-panel">
+  <ToolShell
+    path="/number"
+    title="进制转换"
+    intro="在二、四、八、十、十六、三十二进制之间互转，基于 BigInt 实现，任意长度的整数都不会丢失精度（32 进制使用 0-9a-v 字符集）。"
+    :usage="[
+      '选择输入进制，填写数值，其余进制结果实时显示。',
+      '支持前导负号；十六进制与三十二进制大小写均可识别，输出统一为小写。',
+      '空输入或含非法字符时会提示错误。'
+    ]"
+  >
+    <div class="step-block">
+      <div class="step"><b>1</b> 输入与设置</div>
+      <div class="option-panel">
       <div class="flex flex-wrap items-center" style="gap:12px 20px">
         <span class="form-label">输入进制</span>
         <label v-for="b in BASES" :key="b" class="el-radio">
@@ -35,27 +44,17 @@
         </div>
       </div>
 
-      <div class="mt-4 flex items-center flex-wrap" style="gap:12px">
+      <div class="step-actions">
         <button type="button" class="el-button el-button--info" @click="clearAll">清空</button>
       </div>
+      </div>
     </div>
-
-    <div class="mt-4 rounded-sm p-4" style="background-color:#dfd">
-      <h2 class="text-xl">工具介绍：</h2>
-      <p>在二、四、八、十、十六、三十二进制之间互转，基于 BigInt 实现，任意长度的整数都不会丢失精度（32 进制使用 0-9a-v 字符集）。</p>
-      <h2 class="mt-4 text-xl">使用说明：</h2>
-      <p style="white-space:pre-line">1. 选择输入进制，填写数值，其余进制结果实时显示。
-2. 支持前导负号；十六进制与三十二进制大小写均可识别，输出统一为小写。
-3. 空输入或含非法字符时会提示错误。</p>
-    </div>
-
-    <RelatedTools current="/number" />
-  </div>
+  </ToolShell>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue'
-import RelatedTools from '../../components/RelatedTools.vue'
+import ToolShell from '../../components/ToolShell.vue'
 import { copyText } from './textkit.js'
 import { DIGITS, parseInBase, toStringBase } from './numkit.js'
 

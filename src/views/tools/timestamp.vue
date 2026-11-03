@@ -1,8 +1,17 @@
 <template>
-  <div>
-    <h1 class="text-4xl">Unix时间戳</h1>
-
-    <div class="tool-panel">
+  <ToolShell
+    path="/timestamp"
+    title="Unix时间戳"
+    intro="Unix 时间戳表示自 1970-01-01 00:00:00 UTC 起经过的秒数（或毫秒数）。本工具支持秒/毫秒两种单位互转，并按浏览器本地时区显示日期。"
+    :usage="[
+      '选择「秒」或「毫秒」单位，可一键填入当前时间。',
+      '在「时间戳」输入数字后点「时间戳 → 日期」；在「日期时间」输入日期后点「日期 → 时间戳」。',
+      '日期支持 2024-10-27、2024-10-27 03:33:20 等常见写法，结果同时给出本地时间与 UTC 时间。'
+    ]"
+  >
+    <div class="step-block">
+      <div class="step"><b>1</b> 输入与设置</div>
+      <div class="option-panel">
       <div class="flex flex-wrap items-center" style="gap:12px 20px">
         <span class="form-label">时间戳单位</span>
         <label class="el-radio"><input v-model="unit" type="radio" value="s" />秒（10 位）</label>
@@ -33,7 +42,7 @@
         />
       </div>
 
-      <div class="mt-4 flex items-center flex-wrap" style="gap:12px">
+      <div class="step-actions">
         <button type="button" class="el-button el-button--primary" @click="convertFromStamp">
           <span><i class="fa fa-arrow-right mr-1"></i> 时间戳 → 日期</span>
         </button>
@@ -55,24 +64,14 @@
           <button type="button" class="el-button" @click="copyText(result.local, '本地时间已复制')">复制本地时间</button>
         </div>
       </div>
+      </div>
     </div>
-
-    <div class="mt-4 rounded-sm p-4" style="background-color:#dfd">
-      <h2 class="text-xl">工具介绍：</h2>
-      <p>Unix 时间戳表示自 1970-01-01 00:00:00 UTC 起经过的秒数（或毫秒数）。本工具支持秒/毫秒两种单位互转，并按浏览器本地时区显示日期。</p>
-      <h2 class="mt-4 text-xl">使用说明：</h2>
-      <p style="white-space:pre-line">1. 选择「秒」或「毫秒」单位，可一键填入当前时间。
-2. 在「时间戳」输入数字后点「时间戳 → 日期」；在「日期时间」输入日期后点「日期 → 时间戳」。
-3. 日期支持 2024-10-27、2024-10-27 03:33:20 等常见写法，结果同时给出本地时间与 UTC 时间。</p>
-    </div>
-
-    <RelatedTools current="/timestamp" />
-  </div>
+  </ToolShell>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import RelatedTools from '../../components/RelatedTools.vue'
+import ToolShell from '../../components/ToolShell.vue'
 import { msgError } from '../../lib/ui.js'
 import { copyText } from './textkit.js'
 import { formatLocal, formatUtc, parseLocalDate, stampToMs, msToStamp, relativeText, autoUnit } from './timekit.js'

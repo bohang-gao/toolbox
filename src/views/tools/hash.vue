@@ -1,8 +1,17 @@
 <template>
-  <div>
-    <h1 class="text-4xl">Hash计算</h1>
-
-    <div class="tool-panel">
+  <ToolShell
+    path="/hash"
+    title="Hash计算"
+    intro="使用浏览器 Web Crypto API 计算文本的 SHA-1 / SHA-256 / SHA-384 / SHA-512 摘要，全部在本地完成，文本不会上传服务器。"
+    :usage="[
+      '勾选需要计算的算法（默认 SHA-256），输入文本后自动计算。',
+      '结果默认小写十六进制，可切换为大写；点击「复制」取用。',
+      'SHA-1 已不再安全，仅建议用于校验历史数据，不要用于签名或密码场景。'
+    ]"
+  >
+    <div class="step-block">
+      <div class="step"><b>1</b> 输入与设置</div>
+      <div class="option-panel">
       <div class="flex flex-wrap items-center" style="gap:12px 20px">
         <span class="form-label">算法</span>
         <label v-for="a in ALGORITHMS" :key="a.value" class="el-radio">
@@ -45,27 +54,17 @@
         </div>
       </div>
 
-      <div class="mt-4 flex items-center flex-wrap" style="gap:12px">
+      <div class="step-actions">
         <button type="button" class="el-button el-button--info" @click="clearAll">清空</button>
       </div>
+      </div>
     </div>
-
-    <div class="mt-4 rounded-sm p-4" style="background-color:#dfd">
-      <h2 class="text-xl">工具介绍：</h2>
-      <p>使用浏览器 Web Crypto API 计算文本的 SHA-1 / SHA-256 / SHA-384 / SHA-512 摘要，全部在本地完成，文本不会上传服务器。</p>
-      <h2 class="mt-4 text-xl">使用说明：</h2>
-      <p style="white-space:pre-line">1. 勾选需要计算的算法（默认 SHA-256），输入文本后自动计算。
-2. 结果默认小写十六进制，可切换为大写；点击「复制」取用。
-3. SHA-1 已不再安全，仅建议用于校验历史数据，不要用于签名或密码场景。</p>
-    </div>
-
-    <RelatedTools current="/hash" />
-  </div>
+  </ToolShell>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import RelatedTools from '../../components/RelatedTools.vue'
+import ToolShell from '../../components/ToolShell.vue'
 import { msgError } from '../../lib/ui.js'
 import { copyText } from './textkit.js'
 

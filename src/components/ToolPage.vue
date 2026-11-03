@@ -1,39 +1,20 @@
 // 通用文件处理任务页组件：上传区 + 任务列表 + 开始处理
 <template>
-  <div>
-    <h1 class="text-4xl">{{ title }}</h1>
-    <div class="mt-4 flex flex-col">
-      <div class="file-upload flex flex-col justify-center"
-           :style="dragOver ? 'outline:3px dashed #fff' : ''"
-           @click="addFiles" @dragover.prevent="dragOver=true" @dragleave="dragOver=false"
+  <ToolShell :path="route.path" :title="title" :intro="intro" :usage="usage">
+    <div class="step-block">
+      <div class="step"><b>1</b> 添加文件</div>
+      <div class="upload-zone" :class="{ 'is-drag': dragOver }"
+           @click="addFiles" @dragover.prevent="dragOver = true" @dragleave="dragOver = false"
            @drop.prevent="onDrop">
-        <div class="el-upload-dragger">
-          <i class="fa fa-cloud-upload cloud-upload-item"></i>
-          <div>{{ hint }}</div>
-        </div>
+        <i class="fa fa-cloud-upload uz-icon"></i>
+        <div class="uz-main">{{ hint }}</div>
+        <div class="uz-sub">支持 {{ acceptLabel }}，单文件 ≤50MB</div>
+        <button type="button" class="uz-btn" :disabled="busy" @click.stop="addFiles">选择文件</button>
       </div>
-      <div class="mt-4 flex justify-between">
-        <div>
-          <button type="button" class="el-button el-button--primary" :disabled="busy" @click="addFiles">
-            <span><i class="fa fa-plus mr-1"></i> 添加文件</span>
-          </button>
-        </div>
-        <div class="flex items-center">
-          <div class="el-button-group">
-            <button type="button" class="el-button el-button--info" :disabled="busy || !tasks.length" @click="clearAll">
-              <span><i class="fa fa-trash-o mr-1"></i> 清空任务</span>
-            </button>
-            <button type="button" class="el-button el-button--primary" :disabled="busy || !tasks.length" @click="process">
-              <span><i class="fa fa-arrow-right mr-1"></i> 开始处理</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <slot name="options"></slot>
 
       <div v-if="tasks.length" class="task-list">
         <div v-for="(t, i) in tasks" :key="t.id" class="task-item">
+          <span class="t-dot" :class="t.status"></span>
           <img v-if="t.thumb" :src="t.thumb" class="task-thumb" alt="" />
           <span class="t-name">{{ t.file.name }}</span>
           <span class="t-size">{{ formatSize(t.file.size) }}<template v-if="t.outSize"> → {{ formatSize(t.outSize) }}</template></span>
@@ -41,44 +22,61 @@
           <span class="t-del" title="删除" @click="remove(i)">✕</span>
         </div>
       </div>
+    </div>
 
-      <slot name="result"></slot>
+    <div class="step-block">
+      <div class="step"><b>2</b> 设置</div>
+      <slot name="options"></slot>
     </div>
-    <div class="mt-4 rounded-sm p-4" style="background-color:#dfd">
-      <h2 class="text-xl">工具介绍：</h2>
-      <p>{{ intro }}</p>
-      <h2 class="mt-4 text-xl">使用说明：</h2>
-      <p style="white-space:pre-line">{{ usage }}</p>
+
+    <slot name="result"></slot>
+
+    <div class="step-actions">
+      <button type="button" class="el-button el-button--primary" :disabled="busy || !tasks.length" @click="process">
+        <span><i class="fa fa-play mr-1"></i> 开始处理</span>
+      </button>
+      <button type="button" class="el-button el-button--info" :disabled="busy || !tasks.length" @click="clearAll">
+        <span><i class="fa fa-trash-o mr-1"></i> 清空任务</span>
+      </button>
     </div>
-    <RelatedTools :current="route.path" />
-  </div>
+  </ToolShell>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { pickFiles, msgError, formatSize } from '../lib/ui.js'
-import RelatedTools from './RelatedTools.vue'
+import ToolShell from './ToolShell.vue'
 
 const props = defineProps({
   title: String,
-  hint: { type: String, default: '点击添加文件，或将文件拖到此处' },
+  hint: { type: String, default: '点击或拖拽文件到此处' },
   accept: { type: String, default: '' },
   multiple: { type: Boolean, default: true },
   validator: Function,
   intro: String,
-  usage: String,
+  usage: [String, Array],
   makeThumb: { type: Boolean, default: false },
   processHandler: { type: Function, default: null }
 })
 const emit = defineEmits(['process'])
 
-import { reactive } from 'vue'
+import { reactive, computed } from 'vue'
 const route = useRoute()
 const tasks = reactive([])
 const busy = ref(false)
 const dragOver = ref(false)
 let seq = 0
+
+const acceptLabel = computed(() => {
+  const a = String(props.accept || '')
+  const img = a.includes('image/') || a.includes('image/*')
+  const pdf = a.includes('pdf')
+  if (img && pdf) return 'PDF 与图片'
+  if (pdf) return 'PDF'
+  if (img) return 'JPG、PNG、WEBP、GIF 等图片'
+  return '常见文件'
+})
 
 const statusText = (t) => ({ waiting: '等待中', processing: '处理中', done: '完成', failed: '失败' }[t.status] || t.status)
 
@@ -93,6 +91,7 @@ function pushFiles(files) {
   }
 }
 async function addFiles() {
+  if (busy.value) return
   const files = await pickFiles({ accept: props.accept, multiple: props.multiple, validator: props.validator })
   if (!files.length) return
   pushFiles(files)

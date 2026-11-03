@@ -1,8 +1,17 @@
 <template>
-  <div>
-    <h1 class="text-4xl">URL编码解码</h1>
-
-    <div class="tool-panel">
+  <ToolShell
+    path="/url"
+    title="URL编码解码"
+    intro="使用浏览器原生的 encodeURIComponent / decodeURIComponent 对 URL 参数进行百分号编码与解码，也可切换到 encodeURI 保留 : / ? # 等分隔符。"
+    :usage="[
+      '选择编码或解码模式，结果实时更新。',
+      '默认使用 encodeURIComponent（适合对参数值编码）；取消勾选则使用 encodeURI（保留 URL 结构字符）。',
+      '解码时遇到残缺的 % 转义序列会提示错误。'
+    ]"
+  >
+    <div class="step-block">
+      <div class="step"><b>1</b> 输入与设置</div>
+      <div class="option-panel">
       <div class="flex flex-wrap items-center" style="gap:12px 20px">
         <span class="form-label">模式</span>
         <label class="el-radio"><input v-model="mode" type="radio" value="encode" />编码</label>
@@ -38,30 +47,20 @@
         ></textarea>
       </div>
 
-      <div class="mt-4 flex items-center flex-wrap" style="gap:12px">
+      <div class="step-actions">
         <button type="button" class="el-button el-button--primary" @click="swap">
           <span><i class="fa fa-exchange mr-1"></i> 结果回填到输入</span>
         </button>
         <button type="button" class="el-button el-button--info" @click="clearAll">清空</button>
       </div>
+      </div>
     </div>
-
-    <div class="mt-4 rounded-sm p-4" style="background-color:#dfd">
-      <h2 class="text-xl">工具介绍：</h2>
-      <p>使用浏览器原生的 encodeURIComponent / decodeURIComponent 对 URL 参数进行百分号编码与解码，也可切换到 encodeURI 保留 : / ? # 等分隔符。</p>
-      <h2 class="mt-4 text-xl">使用说明：</h2>
-      <p style="white-space:pre-line">1. 选择编码或解码模式，结果实时更新。
-2. 默认使用 encodeURIComponent（适合对参数值编码）；取消勾选则使用 encodeURI（保留 URL 结构字符）。
-3. 解码时遇到残缺的 % 转义序列会提示错误。</p>
-    </div>
-
-    <RelatedTools current="/url" />
-  </div>
+  </ToolShell>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue'
-import RelatedTools from '../../components/RelatedTools.vue'
+import ToolShell from '../../components/ToolShell.vue'
 import { msgError } from '../../lib/ui.js'
 import { copyText } from './textkit.js'
 

@@ -1,8 +1,17 @@
 <template>
-  <div>
-    <h1 class="text-4xl">Unicode编码转换</h1>
-
-    <div class="tool-panel">
+  <ToolShell
+    path="/unicode"
+    title="Unicode编码转换"
+    intro="在中文与 \uXXXX 转义序列之间互转，按 UTF-16 码元编码，支持 BMP 之外的字符（自动输出代理对），并可选仅转换非 ASCII 字符以保留英文与符号。"
+    :usage="[
+      '选择编码或解码模式，输入内容后结果实时更新。',
+      '编码时可勾选「仅转换非 ASCII 字符」，ASCII 部分保持原样；「大写 U+」控制十六进制字母大小写。',
+      '解码支持 \\uXXXX、\\u{XXXXX}、U+XXXX、&#XXXX; 等多种写法。'
+    ]"
+  >
+    <div class="step-block">
+      <div class="step"><b>1</b> 输入与设置</div>
+      <div class="option-panel">
       <div class="flex flex-wrap items-center" style="gap:12px 20px">
         <span class="form-label">模式</span>
         <label class="el-radio"><input v-model="mode" type="radio" value="encode" />中文 → \uXXXX</label>
@@ -39,30 +48,20 @@
         ></textarea>
       </div>
 
-      <div class="mt-4 flex items-center flex-wrap" style="gap:12px">
+      <div class="step-actions">
         <button type="button" class="el-button el-button--primary" @click="swap">
           <span><i class="fa fa-exchange mr-1"></i> 结果回填到输入</span>
         </button>
         <button type="button" class="el-button el-button--info" @click="clearAll">清空</button>
       </div>
+      </div>
     </div>
-
-    <div class="mt-4 rounded-sm p-4" style="background-color:#dfd">
-      <h2 class="text-xl">工具介绍：</h2>
-      <p>在中文与 \uXXXX 转义序列之间互转，按 UTF-16 码元编码，支持 BMP 之外的字符（自动输出代理对），并可选仅转换非 ASCII 字符以保留英文与符号。</p>
-      <h2 class="mt-4 text-xl">使用说明：</h2>
-      <p style="white-space:pre-line">1. 选择编码或解码模式，输入内容后结果实时更新。
-2. 编码时可勾选「仅转换非 ASCII 字符」，ASCII 部分保持原样；「大写 U+」控制十六进制字母大小写。
-3. 解码支持 \uXXXX、\u{XXXXX}、U+XXXX、&#XXXX; 等多种写法。</p>
-    </div>
-
-    <RelatedTools current="/unicode" />
-  </div>
+  </ToolShell>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue'
-import RelatedTools from '../../components/RelatedTools.vue'
+import ToolShell from '../../components/ToolShell.vue'
 import { msgError } from '../../lib/ui.js'
 import { copyText } from './textkit.js'
 

@@ -1,8 +1,17 @@
 <template>
-  <div>
-    <h1 class="text-4xl">二维码制作</h1>
-
-    <div class="tool-panel">
+  <ToolShell
+    path="/qrcode"
+    title="二维码制作"
+    intro="根据输入的文本或网址生成二维码图片，可自定义尺寸与纠错级别；生成过程在浏览器本地完成，内容不会上传到服务器。"
+    :usage="[
+      '在「文本内容」中输入需要编码的文字或网址。',
+      '选择二维码尺寸与纠错级别（级别越高，图案越密集、容错越强）。',
+      '点击「生成二维码」，预览确认后点击「下载 PNG」保存图片。'
+    ]"
+  >
+    <div class="step-block">
+      <div class="step"><b>1</b> 输入与设置</div>
+      <div class="option-panel">
       <div class="flex flex-wrap items-center" style="gap:12px 20px">
         <span class="form-label">二维码尺寸</span>
         <select v-model.number="size" class="el-input__inner" style="width:140px">
@@ -30,7 +39,7 @@
         ></textarea>
       </div>
 
-      <div class="mt-4 flex items-center" style="gap:12px">
+      <div class="step-actions">
         <button type="button" class="el-button el-button--primary" :disabled="busy" @click="generate">
           <span><i class="fa fa-qrcode mr-1"></i> 生成二维码</span>
         </button>
@@ -49,25 +58,15 @@
           </button>
         </div>
       </div>
+      </div>
     </div>
-
-    <div class="mt-4 rounded-sm p-4" style="background-color:#dfd">
-      <h2 class="text-xl">工具介绍：</h2>
-      <p>根据输入的文本或网址生成二维码图片，可自定义尺寸与纠错级别；生成过程在浏览器本地完成，内容不会上传到服务器。</p>
-      <h2 class="mt-4 text-xl">使用说明：</h2>
-      <p style="white-space:pre-line">1. 在「文本内容」中输入需要编码的文字或网址。
-2. 选择二维码尺寸与纠错级别（级别越高，图案越密集、容错越强）。
-3. 点击「生成二维码」，预览确认后点击「下载 PNG」保存图片。</p>
-    </div>
-
-    <RelatedTools current="/qrcode" />
-  </div>
+  </ToolShell>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import QRCode from 'qrcode'
-import RelatedTools from '../../components/RelatedTools.vue'
+import ToolShell from '../../components/ToolShell.vue'
 import { downloadBlob, msgSuccess, msgError } from '../../lib/ui.js'
 
 const text = ref('')
