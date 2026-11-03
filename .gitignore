@@ -4,3 +4,11 @@ dist/
 *.local
 .vite/
 shots/
+
+# 流水线临时产物
+_task_spec_*.md
+_pipeline.log
+_w*_result.txt
+_w*_stderr.log
+run_pipeline.sh
+run_w*.sh
