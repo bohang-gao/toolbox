@@ -107,17 +107,222 @@ export function detectBackgroundColor(imageData) {
   return { bg, variance }
 }
 
+/* ---------- 自适应背景分割（多源 BFS 区域生长） ---------- */
+
+const MAX_REGION = 4096
+
+/**
+ * 多源 BFS 区域生长，用「局部步进容差」跟随渐变/暗角背景。
+ *
+ * 与全局模型（四边中位数 + 固定容差）不同，这里每个边缘种子保留自己的
+ * 参考色，生长时同时约束：
+ *   1) 局部平滑：与入队前驱像素的通道差 <= stepTol（跟随渐变）
+ *   2) 漂移有界：与该区域种子色的通道差 <= driftTol（防止渗进主体）
+ *
+ * @param {{data:Uint8ClampedArray,width:number,height:number}} imageData
+ * @param {{stepTol?:number,driftTol?:number,eraseSeeds?:number[][],keepSeeds?:number[][]}} opts
+ * @returns {{alpha:Uint8ClampedArray,coverage:number,ok:boolean,reason:string,
+ *   bg:number[],variance:number,mask:Uint8Array}}
+ */
+export function segmentAdaptive(imageData, opts = {}) {
+  const { stepTol = 10, driftTol = 70, eraseSeeds = [], keepSeeds = [] } = opts
+  const { data, width: w, height: h } = imageData
+  const n = w * h
+
+  const det = detectBackgroundColor(imageData)
+
+  const alpha = new Uint8ClampedArray(n)
+  alpha.fill(255)
+  const mask = new Uint8Array(n) // 1 = 背景
+  const keep = new Uint8Array(n) // 1 = 保护种子
+
+  const region = new Int16Array(n).fill(-1) // 每个像素所属区域 id
+  const refR = new Uint8Array(MAX_REGION)
+  const refG = new Uint8Array(MAX_REGION)
+  const refB = new Uint8Array(MAX_REGION)
+  let regionCount = 0
+
+  const queueIdx = new Int32Array(n)
+  const queueRef = new Int16Array(n)
+  let head = 0
+  let tail = 0
+
+  const inBounds = (x, y) => x >= 0 && y >= 0 && x < w && y < h
+
+  for (const [x, y] of keepSeeds) {
+    if (inBounds(x, y)) keep[y * w + x] = 1
+  }
+
+  // 新建区域；超过上限时复用最接近的既有参考色，避免 Int16 溢出
+  const newRegion = (r, g, b) => {
+    if (regionCount < MAX_REGION) {
+      const id = regionCount++
+      refR[id] = r
+      refG[id] = g
+      refB[id] = b
+      return id
+    }
+    let best = 0
+    let bestD = Infinity
+    for (let k = 0; k < regionCount; k++) {
+      const d = Math.max(
+        Math.abs(r - refR[k]),
+        Math.abs(g - refG[k]),
+        Math.abs(b - refB[k])
+      )
+      if (d < bestD) {
+        bestD = d
+        best = k
+      }
+    }
+    return best
+  }
+
+  let bgCount = 0
+  const markBg = (idx) => {
+    mask[idx] = 1
+    alpha[idx] = 0
+    bgCount++
+  }
+
+  const seedPixel = (idx) => {
+    if (idx < 0 || idx >= n || keep[idx] || mask[idx]) return
+    if (region[idx] !== -1) return
+    const i = idx * 4
+    const r = data[i]
+    const g = data[i + 1]
+    const b = data[i + 2]
+    // 边缘种子若与全局背景中位数偏差过大（如肩部顶到画面边缘），不当作背景种子，
+    // 否则主体会沿边界自成一区被整块抠掉
+    const edgeDist = Math.max(
+      Math.abs(r - det.bg[0]),
+      Math.abs(g - det.bg[1]),
+      Math.abs(b - det.bg[2])
+    )
+    if (edgeDist > driftTol) return
+    const rid = newRegion(r, g, b)
+    region[idx] = rid
+    queueIdx[tail] = idx
+    queueRef[tail] = rid
+    tail++
+  }
+
+  // 种子：图像最外 1px 全部像素，每个种子携带自己的参考色
+  for (let x = 0; x < w; x++) {
+    seedPixel(x)
+    seedPixel((h - 1) * w + x)
+  }
+  for (let y = 0; y < h; y++) {
+    seedPixel(y * w)
+    seedPixel(y * w + w - 1)
+  }
+
+  const growNeighbors = (idx, rid) => {
+    const x = idx % w
+    const y = (idx - x) / w
+    const pi = idx * 4
+    const pr = data[pi]
+    const pg = data[pi + 1]
+    const pb = data[pi + 2]
+    const rr = refR[rid]
+    const rg = refG[rid]
+    const rb = refB[rid]
+
+    const tryN = (ni) => {
+      if (region[ni] !== -1 || keep[ni] || mask[ni]) return
+      const qi = ni * 4
+      const qr = data[qi]
+      const qg = data[qi + 1]
+      const qb = data[qi + 2]
+      // 局部平滑：与入队前驱像素的颜色差
+      const step = Math.max(Math.abs(qr - pr), Math.abs(qg - pg), Math.abs(qb - pb))
+      // 漂移有界：与该区域种子色的颜色差
+      const drift = Math.max(Math.abs(qr - rr), Math.abs(qg - rg), Math.abs(qb - rb))
+      if (step <= stepTol && drift <= driftTol) {
+        region[ni] = rid
+        queueIdx[tail] = ni
+        queueRef[tail] = rid
+        tail++
+      }
+    }
+
+    if (x > 0) tryN(idx - 1)
+    if (x < w - 1) tryN(idx + 1)
+    if (y > 0) tryN(idx - w)
+    if (y < h - 1) tryN(idx + w)
+  }
+
+  while (head < tail) {
+    const idx = queueIdx[head]
+    const rid = queueRef[head]
+    head++
+    if (!mask[idx]) markBg(idx)
+    growNeighbors(idx, rid)
+  }
+
+  // 手动擦除种子：以其自身颜色为参考单独生长一块并入背景
+  for (const [x, y] of eraseSeeds) {
+    if (!inBounds(x, y)) continue
+    const idx = y * w + x
+    if (keep[idx]) continue
+    const i = idx * 4
+    const rid = newRegion(data[i], data[i + 1], data[i + 2])
+    if (!mask[idx]) markBg(idx)
+    // 重置访问标记，从该种子重新生长（已判背景的像素不再进入）
+    region.fill(-1)
+    head = 0
+    tail = 0
+    region[idx] = rid
+    queueIdx[tail] = idx
+    queueRef[tail] = rid
+    tail++
+    while (head < tail) {
+      const cur = queueIdx[head]
+      const crid = queueRef[head]
+      head++
+      if (!mask[cur]) markBg(cur)
+      growNeighbors(cur, crid)
+    }
+  }
+
+  const coverage = bgCount / n
+  let ok = true
+  let reason = ''
+  if (coverage > 0.92) {
+    ok = false
+    reason = '识别到的背景超过 92%，可能整张图被误判，请手动点选背景区域'
+  } else if (coverage < 0.05) {
+    ok = false
+    reason = '未能识别背景（颜色变化过大或过于杂乱），请手动点选背景区域'
+  }
+
+  return { alpha, coverage, ok, reason, bg: det.bg, variance: det.variance, mask }
+}
+
 /* ---------- 背景分割（4 邻域 BFS） ---------- */
 
 /**
  * @param {{data:Uint8ClampedArray,width:number,height:number}} imageData
- * @param {{tol?:number,tolLum?:number,eraseSeeds?:number[][],keepSeeds?:number[][]}} opts
+ * @param {{tol?:number,tolLum?:number,stepTol?:number,driftTol?:number,
+ *   mode?:'strict'|'adaptive',eraseSeeds?:number[][],keepSeeds?:number[][]}} opts
+ *   mode='strict'（默认）：全局背景色 + 固定容差，向后兼容；
+ *   mode='adaptive'：先跑自适应区域生长，失败再回退 strict。
  * @returns {{alpha:Uint8ClampedArray,coverage:number,ok:boolean,reason:string,bg:number[],variance:number,mask:Uint8Array}}
  */
 export function segmentBackground(imageData, opts = {}) {
-  const { tol = 38, tolLum = 42, eraseSeeds = [], keepSeeds = [] } = opts
+  const {
+    tol = 38, tolLum = 42, stepTol = 10, driftTol = 70,
+    mode = 'strict', eraseSeeds = [], keepSeeds = [],
+  } = opts
   const { data, width: w, height: h } = imageData
   const n = w * h
+
+  // 自适应模式：成功即返回，否则回退 strict（variance 检查仅作用于 strict）
+  if (mode === 'adaptive') {
+    const adaptive = segmentAdaptive(imageData, { stepTol, driftTol, eraseSeeds, keepSeeds })
+    if (adaptive.ok) return adaptive
+    return segmentBackground(imageData, { ...opts, mode: 'strict' })
+  }
 
   const det = detectBackgroundColor(imageData)
   const bg = det.bg

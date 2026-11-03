@@ -345,6 +345,202 @@ section('手动点选种子')
     `alpha=${stripAfter.alpha[20 * W + 100]}`)
 }
 
+/* ---------- 用例 8：自适应模式（渐变 / 暗角 / 噪声） ---------- */
+section('自适应抠图（渐变背景）')
+{
+  const W = 240
+  const H = 320
+  const TOP = [219, 231, 245] // #dbe7f5
+  const BOTTOM = [147, 169, 200] // #93a9c8
+  const img = makeImageData(W, H)
+  const d = img.data
+  const cx = 120
+  const cy = 110
+  const rx = 46
+  const ry = 60
+
+  for (let y = 0; y < H; y++) {
+    const t = y / (H - 1)
+    const bgc = TOP.map((v, k) => Math.round(v + (BOTTOM[k] - v) * t))
+    for (let x = 0; x < W; x++) {
+      const i = (y * W + x) * 4
+      let color = bgc
+      if (y >= 190 && x >= 55 && x <= 185) color = SHOULDER
+      let cov = 0
+      for (let sy = 0; sy < 4; sy++) {
+        for (let sx = 0; sx < 4; sx++) {
+          if (insideEllipse(x + (sx + 0.5) / 4, y + (sy + 0.5) / 4, cx, cy, rx, ry)) cov++
+        }
+      }
+      cov /= 16
+      if (cov > 0) {
+        color = [
+          Math.round(SKIN[0] * cov + color[0] * (1 - cov)),
+          Math.round(SKIN[1] * cov + color[1] * (1 - cov)),
+          Math.round(SKIN[2] * cov + color[2] * (1 - cov)),
+        ]
+      }
+      d[i] = color[0]
+      d[i + 1] = color[1]
+      d[i + 2] = color[2]
+      d[i + 3] = 255
+    }
+  }
+
+  const res = segmentBackground(img, { mode: 'adaptive' })
+  const at = (x, y) => res.alpha[y * W + x]
+  const bgPts = [[5, 5], [W - 5, 5], [5, H - 5], [W - 5, H - 5]]
+  const bgMax = Math.max(...bgPts.map(([x, y]) => at(x, y)))
+  const fgMin = Math.min(at(cx, cy), at(120, 260))
+  check('渐变背景：ok=true', res.ok === true, `coverage=${(res.coverage * 100).toFixed(1)}%`)
+  check('渐变背景：coverage 40%–85%',
+    res.coverage >= 0.40 && res.coverage <= 0.85,
+    `coverage=${(res.coverage * 100).toFixed(1)}%`)
+  check('渐变背景：背景 alpha < 40', bgMax < 40, `max=${bgMax}`)
+  check('渐变背景：主体 alpha > 200', fgMin > 200, `min=${fgMin}`)
+}
+
+section('自适应抠图（径向暗角）')
+{
+  const W = 240
+  const H = 320
+  const img = makeImageData(W, H)
+  const d = img.data
+  const cx = 120
+  const cy = 110
+  const rx = 46
+  const ry = 60
+  const maxR = Math.hypot(W / 2, H / 2)
+
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const i = (y * W + x) * 4
+      const rr = Math.hypot(x - W / 2, y - H / 2) / maxR
+      const light = [232, 238, 248]
+      const dark = [110, 126, 158]
+      let color = light.map((v, k) => Math.round(v + (dark[k] - v) * rr))
+      if (y >= 190 && x >= 55 && x <= 185) color = SHOULDER
+      let cov = 0
+      for (let sy = 0; sy < 4; sy++) {
+        for (let sx = 0; sx < 4; sx++) {
+          if (insideEllipse(x + (sx + 0.5) / 4, y + (sy + 0.5) / 4, cx, cy, rx, ry)) cov++
+        }
+      }
+      cov /= 16
+      if (cov > 0) {
+        color = [
+          Math.round(SKIN[0] * cov + color[0] * (1 - cov)),
+          Math.round(SKIN[1] * cov + color[1] * (1 - cov)),
+          Math.round(SKIN[2] * cov + color[2] * (1 - cov)),
+        ]
+      }
+      d[i] = color[0]
+      d[i + 1] = color[1]
+      d[i + 2] = color[2]
+      d[i + 3] = 255
+    }
+  }
+
+  const res = segmentBackground(img, { mode: 'adaptive' })
+  check('径向暗角：ok=true', res.ok === true, `coverage=${(res.coverage * 100).toFixed(1)}%`)
+  check('径向暗角：背景 alpha < 40', res.alpha[5 * W + 5] < 40,
+    `corner=${res.alpha[5 * W + 5]}`)
+}
+
+section('自适应抠图（JPEG 噪声）')
+{
+  const W = 200
+  const H = 260
+  const img = makeImageData(W, H)
+  const d = img.data
+  // 确定性伪随机（LCG），避免用例不稳定
+  let seed = 12345
+  const rnd = () => {
+    seed = (seed * 1103515245 + 12345) & 0x7fffffff
+    return seed / 0x7fffffff
+  }
+  const cx = 100
+  const cy = 90
+  const rx = 38
+  const ry = 50
+
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const i = (y * W + x) * 4
+      let color = BLUE
+      if (y >= 160 && x >= 45 && x <= 155) color = SHOULDER
+      let cov = 0
+      for (let sy = 0; sy < 4; sy++) {
+        for (let sx = 0; sx < 4; sx++) {
+          if (insideEllipse(x + (sx + 0.5) / 4, y + (sy + 0.5) / 4, cx, cy, rx, ry)) cov++
+        }
+      }
+      cov /= 16
+      if (cov > 0) {
+        color = [
+          Math.round(SKIN[0] * cov + color[0] * (1 - cov)),
+          Math.round(SKIN[1] * cov + color[1] * (1 - cov)),
+          Math.round(SKIN[2] * cov + color[2] * (1 - cov)),
+        ]
+      }
+      // 每通道 ±6 噪声
+      d[i] = color[0] + Math.round((rnd() * 2 - 1) * 6)
+      d[i + 1] = color[1] + Math.round((rnd() * 2 - 1) * 6)
+      d[i + 2] = color[2] + Math.round((rnd() * 2 - 1) * 6)
+      d[i + 3] = 255
+    }
+  }
+
+  const res = segmentBackground(img, { mode: 'adaptive' })
+  check('JPEG 噪声纯色底：ok=true', res.ok === true, `coverage=${(res.coverage * 100).toFixed(1)}%`)
+  check('JPEG 噪声纯色底：coverage 在合理范围',
+    res.coverage > 0.05 && res.coverage <= 0.92,
+    `coverage=${(res.coverage * 100).toFixed(1)}%`)
+}
+
+section('自适应抠图（杂乱彩色噪声）')
+{
+  const W = 160
+  const H = 160
+  const img = makeImageData(W, H)
+  const d = img.data
+  let seed = 999
+  const rnd = () => {
+    seed = (seed * 1103515245 + 12345) & 0x7fffffff
+    return seed / 0x7fffffff
+  }
+  for (let i = 0; i < W * H; i++) {
+    d[i * 4] = Math.floor(rnd() * 256)
+    d[i * 4 + 1] = Math.floor(rnd() * 256)
+    d[i * 4 + 2] = Math.floor(rnd() * 256)
+    d[i * 4 + 3] = 255
+  }
+  const res = segmentBackground(img, { mode: 'adaptive' })
+  check('杂乱彩色噪声：ok=false', res.ok === false,
+    `coverage=${(res.coverage * 100).toFixed(1)}%`)
+  check('杂乱彩色噪声：reason 非空', typeof res.reason === 'string' && res.reason.length > 0,
+    res.reason)
+}
+
+section('回归：strict 模式结果不变')
+{
+  const img = makePortrait()
+  const strict = segmentBackground(img, { mode: 'strict' })
+  const legacy = segmentBackground(img)
+  let sameAlpha = true
+  let sameMask = true
+  for (let i = 0; i < strict.alpha.length; i++) {
+    if (strict.alpha[i] !== legacy.alpha[i]) { sameAlpha = false; break }
+  }
+  for (let i = 0; i < strict.mask.length; i++) {
+    if (strict.mask[i] !== legacy.mask[i]) { sameMask = false; break }
+  }
+  check('strict 模式 alpha 与默认调用完全一致', sameAlpha)
+  check('strict 模式 mask 与默认调用完全一致', sameMask)
+  check('strict 模式仍 ok=true', strict.ok === true,
+    `coverage=${(strict.coverage * 100).toFixed(1)}%`)
+}
+
 /* ---------- 汇总 ---------- */
 console.log(`\n===== 结果：${pass} 通过 / ${fail} 失败 =====`)
 if (fail > 0) process.exit(1)

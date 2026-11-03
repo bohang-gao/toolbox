@@ -18,6 +18,14 @@
           <span class="idphoto-hint">手动模式：左键点背景（擦除），右键点主体（保留）</span>
         </div>
 
+        <div class="flex items-center flex-wrap mt-2" style="gap:12px 16px">
+          <span class="form-label">抠图算法</span>
+          <label class="el-radio">
+            <input v-model="algorithm" type="radio" value="adaptive" />自适应（推荐 · 支持渐变背景）
+          </label>
+          <label class="el-radio"><input v-model="algorithm" type="radio" value="strict" />严格单色</label>
+        </div>
+
         <div class="el-slider mt-2">
           <span class="form-label" style="flex-shrink:0">颜色容差</span>
           <input v-model.number="tol" type="range" min="10" max="90" @change="recompute" />
@@ -212,6 +220,7 @@ const usage = [
 ]
 
 const mode = ref('auto')
+const algorithm = ref('adaptive')
 const tol = ref(38)
 const tolLum = ref(42)
 const bgMode = ref('white')
@@ -362,7 +371,8 @@ async function runSegmentation() {
   }
 
   const det = detectBackgroundColor(imageData)
-  if (mode.value === 'auto' && det.variance > 60) {
+  // 仅严格单色模式下，背景不均匀才阻止自动流程并切手动；自适应模式可处理渐变
+  if (mode.value === 'auto' && algorithm.value === 'strict' && det.variance > 60) {
     mode.value = 'manual'
     tab.value = 'original'
     msgError('背景颜色不均匀，已切换为手动模式：请在预览图上左键点选背景、右键点选需保留的区域，然后点击「重新抠图」')
@@ -373,6 +383,7 @@ async function runSegmentation() {
     ? { eraseSeeds: eraseSeeds.value, keepSeeds: keepSeeds.value }
     : {}
   const seg = segmentBackground(imageData, {
+    mode: algorithm.value,
     tol: Number(tol.value),
     tolLum: Number(tolLum.value),
     ...seedOpts
