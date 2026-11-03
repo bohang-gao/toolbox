@@ -1,7 +1,7 @@
 // U4 线上验证：首页 200 / /print 确认模态 / 工具页 .crumbs + .tool-layout
 const { chromium } = require('C:/Users/DELL/AppData/Local/hermes/hermes-agent/node_modules/playwright-core')
 
-const BASE = 'https://bohang-gao.github.io/imgtool-clone'
+const BASE = 'https://bohang-gao.github.io/toolbox'
 const EXEC = 'C:/Users/DELL/AppData/Local/ms-playwright/chromium-1234/chrome-win64/chrome.exe'
 
 const results = []
