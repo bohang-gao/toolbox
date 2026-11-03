@@ -15,7 +15,7 @@
           <span class="form-label">抠图模式</span>
           <label class="el-radio"><input v-model="mode" type="radio" value="auto" />自动</label>
           <label class="el-radio"><input v-model="mode" type="radio" value="manual" />手动点选</label>
-          <span class="idphoto-hint">手动模式：左键点背景（擦除），右键点主体（保留）</span>
+          <span class="idphoto-hint">手动模式：左键点背景（只抠你点的区域，自动扩展同色连通区），右键点主体（保留）</span>
         </div>
 
         <div class="flex items-center flex-wrap mt-2" style="gap:12px 16px">
@@ -375,7 +375,7 @@ async function runSegmentation() {
   if (mode.value === 'auto' && algorithm.value === 'strict' && det.variance > 60) {
     mode.value = 'manual'
     tab.value = 'original'
-    msgError('背景颜色不均匀，已切换为手动模式：请在预览图上左键点选背景、右键点选需保留的区域，然后点击「重新抠图」')
+    msgError('背景颜色不均匀，已切换为手动模式：左键点选要去掉的背景（只抠你点的区域）、右键点选需保留的主体，然后点击「重新抠图」')
     return { ok: false, retried: 0 }
   }
 

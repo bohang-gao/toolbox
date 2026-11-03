@@ -254,13 +254,17 @@ function segmentAdaptivePass(imageData, opts = {}) {
   }
 
   // 种子：图像最外 1px 全部像素，每个种子携带自己的参考色
-  for (let x = 0; x < w; x++) {
-    seedPixel(x)
-    seedPixel((h - 1) * w + x)
-  }
-  for (let y = 0; y < h; y++) {
-    seedPixel(y * w)
-    seedPixel(y * w + w - 1)
+  // 侵入式（用户已手动点选擦除种子）时跳过边缘种子：手动模式下「点哪抠哪」，
+  // 避免自动生长再次啃掉用户想保留的区域
+  if (eraseSeeds.length === 0) {
+    for (let x = 0; x < w; x++) {
+      seedPixel(x)
+      seedPixel((h - 1) * w + x)
+    }
+    for (let y = 0; y < h; y++) {
+      seedPixel(y * w)
+      seedPixel(y * w + w - 1)
+    }
   }
 
   const growNeighbors = (idx, rid) => {
@@ -340,7 +344,8 @@ function segmentAdaptivePass(imageData, opts = {}) {
   if (coverage > 0.92) {
     ok = false
     reason = '识别到的背景超过 92%，可能整张图被误判，请手动点选背景区域'
-  } else if (coverage < 0.05) {
+  } else if (coverage < 0.05 && eraseSeeds.length === 0) {
+    // 侵入式（用户已点选）下背景本就可能很小，不判失败
     ok = false
     reason = '未能识别背景（颜色变化过大或过于杂乱），请手动点选背景区域'
   }
@@ -502,6 +507,7 @@ export function segmentAdaptive(imageData, opts = {}) {
 
   // 首轮成功且不碎片化 → 一次到位，不多跑
   const withWarn = (r) => {
+    if (opts.eraseSeeds && opts.eraseSeeds.length) return r   // 侵入式：结果由用户点选决定，不告警
     const compact = boundaryCompactness(r.alpha, imageData.width, imageData.height)
     // 两类无声失败：边界被啃出毛边（compact 高）/ 主体被大面积吞食（背景占比异常高）
     if (compact > COMPACT_WARN || r.coverage > 0.8) {
@@ -655,21 +661,23 @@ export function segmentBackground(imageData, opts = {}) {
     }
   }
 
-  // 1) 四边种子 + 背景色判定
+  // 1) 四边种子 + 背景色判定（用户已手动点选擦除种子时改侵入式：只抠点选区域）
   const seedFlags = new Uint8Array(n)
-  for (let x = 0; x < w; x++) {
-    for (const y of [0, h - 1]) {
-      const idx = y * w + x
-      if (!keep[idx] && accept(idx)) seedFlags[idx] = 1
+  if (eraseSeeds.length === 0) {
+    for (let x = 0; x < w; x++) {
+      for (const y of [0, h - 1]) {
+        const idx = y * w + x
+        if (!keep[idx] && accept(idx)) seedFlags[idx] = 1
+      }
     }
-  }
-  for (let y = 0; y < h; y++) {
-    for (const x of [0, w - 1]) {
-      const idx = y * w + x
-      if (!keep[idx] && accept(idx)) seedFlags[idx] = 1
+    for (let y = 0; y < h; y++) {
+      for (const x of [0, w - 1]) {
+        const idx = y * w + x
+        if (!keep[idx] && accept(idx)) seedFlags[idx] = 1
+      }
     }
+    flood(accept)
   }
-  flood(accept)
 
   // 2) 手动擦除种子：强制判为背景，并以种子自身颜色为参考向外传播，
   //    这样点一下就能清掉整块误判的残留区域（受 keepSeeds 阻挡）
@@ -714,7 +722,7 @@ export function segmentBackground(imageData, opts = {}) {
   if (coverage > 0.92) {
     ok = false
     reason = '识别到的背景超过 92%，可能整张图被误判，请手动点选背景区域'
-  } else if (coverage < 0.05) {
+  } else if (coverage < 0.05 && eraseSeeds.length === 0) {
     ok = false
     reason = '未能识别纯色背景，请手动点选背景区域'
   }

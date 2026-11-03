@@ -832,6 +832,29 @@ section('W7 侵蚀警告（边界紧凑度）')
   }
 }
 
+section('W8 手动点选修补：侵入式只抠点选区域')
+{
+  const W = 200, H = 200
+  const img = makeImageData(W, H)
+  const d = img.data
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = (y * W + x) * 4
+    const leftHalf = x < 100
+    const inSubject = Math.abs(x - 100) < 30 && Math.abs(y - 100) < 30
+    let rgb = leftHalf ? [51, 85, 170] : [221, 238, 255]   // 左右两种背景色
+    if (inSubject) rgb = [233, 196, 160]
+    d[i] = rgb[0]; d[i + 1] = rgb[1]; d[i + 2] = rgb[2]; d[i + 3] = 255
+  }
+  const res = segmentAdaptive(img, { eraseSeeds: [[5, 5]] })
+  const at = (x, y) => res.alpha[y * W + x]
+  check('侵入式：点选处背景被抠掉', at(5, 5) < 40, `alpha=${at(5, 5)}`)
+  check('侵入式：点选区域扩展到同色连通背景', at(60, 20) < 40, `alpha=${at(60, 20)}`)
+  check('侵入式：未点选区域保持不动', at(195, 20) > 200, `alpha=${at(195, 20)}`)
+  check('侵入式：主体完整保留', at(100, 100) > 200, `alpha=${at(100, 100)}`)
+  check('侵入式：即使覆盖 <5% 也不判失败', res.ok === true,
+    `coverage=${(res.coverage * 100).toFixed(1)}% ok=${res.ok}`)
+}
+
 /* ---------- 汇总 ---------- */
 console.log(`\n===== 结果：${pass} 通过 / ${fail} 失败 =====`)
 if (fail > 0) process.exit(1)
