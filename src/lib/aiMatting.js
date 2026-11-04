@@ -2,7 +2,7 @@
 // 懒加载：首次调用才 import，避免拖慢全站首屏。
 // 模型资产位于 public/imgly/（由 scripts/sync-imgly-assets.mjs 生成）。
 
-const MAX_EDGE = 800 // ISNet 输入最长边；800px 足够输出 295×413 证件照
+const MAX_EDGE = 640 // ISNet 输入最长边；640px 对 295×413 输出足够，且比 800px 快约 35%
 const PROGRESS_INTERVAL = 500 // 进度回调节流（ms）
 
 let modPromise = null
