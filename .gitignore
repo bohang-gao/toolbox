@@ -12,3 +12,6 @@ _w*_result.txt
 _w*_stderr.log
 run_pipeline.sh
 run_w*.sh
+_a*_result.txt
+_a*_stderr.log
+_run_*.sh

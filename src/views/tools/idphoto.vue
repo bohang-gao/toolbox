@@ -11,20 +11,29 @@
   >
     <template #options>
       <div class="mt-4 option-panel">
-        <div class="flex items-center flex-wrap" style="gap:12px 16px">
+        <div v-if="algorithm !== 'ai'" class="flex items-center flex-wrap" style="gap:12px 16px">
           <span class="form-label">抠图模式</span>
           <label class="el-radio"><input v-model="mode" type="radio" value="auto" />自动</label>
           <label class="el-radio"><input v-model="mode" type="radio" value="manual" />手动点选</label>
           <span class="idphoto-hint">手动模式：左键点背景（只抠你点的区域，自动扩展同色连通区），右键点主体（保留）</span>
         </div>
+        <p v-else class="idphoto-hint mt-2">
+          AI 模式自动识别主体，无需点选；如结果不理想，可切换到「自适应」并配合「手动点选」修补。
+        </p>
 
         <div class="flex items-center flex-wrap mt-2" style="gap:12px 16px">
           <span class="form-label">抠图算法</span>
           <label class="el-radio">
-            <input v-model="algorithm" type="radio" value="adaptive" />自适应（推荐 · 支持渐变背景）
+            <input v-model="algorithm" type="radio" value="ai" />AI 智能抠图（推荐 · 背景有杂物也能抠）
+          </label>
+          <label class="el-radio">
+            <input v-model="algorithm" type="radio" value="adaptive" />自适应（快速 · 纯色/渐变底）
           </label>
           <label class="el-radio"><input v-model="algorithm" type="radio" value="strict" />严格单色</label>
         </div>
+        <p v-if="algorithm === 'ai'" class="idphoto-hint mt-1">
+          首次使用需下载约 65MB 模型（仅一次，之后走浏览器缓存）；处理约 5–30 秒
+        </p>
 
         <div class="el-slider mt-2">
           <span class="form-label" style="flex-shrink:0">颜色容差</span>
@@ -109,7 +118,7 @@
               @click="tab = 'result'"
             >效果</button>
           </div>
-          <template v-if="mode === 'manual'">
+          <template v-if="mode === 'manual' && algorithm !== 'ai'">
             <button type="button" class="el-button" :disabled="working" @click="recompute">重新抠图</button>
             <button v-if="markers.length" type="button" class="el-button" @click="clearSeeds">
               清除标记（{{ markers.length }}）
@@ -125,7 +134,7 @@
           <div
             v-show="tab === 'original'"
             class="idphoto-canvas-wrap"
-            :class="{ 'is-manual': mode === 'manual' }"
+            :class="{ 'is-manual': manualActive }"
           >
             <canvas
               ref="originalCanvasRef"
@@ -143,7 +152,7 @@
           <div
             v-show="tab === 'cutout'"
             class="idphoto-canvas-wrap idphoto-checker"
-            :class="{ 'is-manual': mode === 'manual' }"
+            :class="{ 'is-manual': manualActive }"
           >
             <canvas
               ref="cutoutCanvasRef"
@@ -190,7 +199,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, ref, shallowRef, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, shallowRef, watch } from 'vue'
 import ToolPage from '../../components/ToolPage.vue'
 import {
   imageValidator, loadImage, canvasToBlob, downloadBlob, baseName, msgSuccess, msgError, msgWarning
@@ -200,6 +209,7 @@ import {
   decontaminate, composite, subjectBox, cropToBox, makeImageData
 } from '../../lib/portrait.js'
 import { SIZE_PRESETS, getPreset, layoutA4 } from '../../lib/idphoto.js'
+import { aiMatte, preloadAi } from '../../lib/aiMatting.js'
 
 const SWATCHES = [
   { id: 'white', name: '白色', color: '#ffffff' },
@@ -210,17 +220,17 @@ const SWATCHES = [
 ]
 const COLOR_HEX = { white: '#ffffff', red: '#d9001b', blue: '#438edb', gray: '#f0f0f0', gradient: '#dbeafe' }
 
-const intro = '纯前端在浏览器本地完成抠图、换底色与标准尺寸裁剪，照片不上传服务器。适合背景相对干净的正面证件照。'
+const intro = '纯前端在浏览器本地完成抠图、换底色与标准尺寸裁剪，照片不上传服务器。AI 抠图可处理背景有杂物的照片。'
 const usage = [
-  '上传或拖入一张正面照，纯色背景的成像效果最佳。',
-  '选择抠图模式：自动去背；背景杂乱时改用手动点选修补。',
+  '上传或拖入一张正面照；AI 抠图不要求纯色背景，自适应/严格模式适合干净底色。',
+  '选择抠图算法：默认 AI 智能抠图；背景干净时可用更快的自适应/严格单色。',
   '设置背景色与证件照尺寸，按需开启 A4 排版（8 张）。',
   '点击「开始处理」生成效果，用「原图 / 抠图 / 效果」三态预览确认。',
   '下载单张 PNG，或下载 A4 排版图后直接冲印。'
 ]
 
 const mode = ref('auto')
-const algorithm = ref('adaptive')
+const algorithm = ref('ai')
 const tol = ref(38)
 const tolLum = ref(42)
 const bgMode = ref('white')
@@ -248,7 +258,9 @@ const cutoutCanvasRef = ref(null)
 const resultCanvasRef = ref(null)
 
 const preset = computed(() => getPreset(presetId.value))
-const visibleMarkers = computed(() => (mode.value === 'manual' ? markers.value : []))
+// AI 模式不参与手动点选（AI 自动识别主体）
+const manualActive = computed(() => mode.value === 'manual' && algorithm.value !== 'ai')
+const visibleMarkers = computed(() => (manualActive.value ? markers.value : []))
 
 function hexToRgb(hex) {
   const s = String(hex || '').replace('#', '')
@@ -347,32 +359,105 @@ function renderOutputs() {
   a4Canvas.value = a4Enabled.value ? layoutA4(c, p) : null
 }
 
-/**
- * 抠图 + 边缘精修，成功时更新 state 并渲染预览。
- * @returns {Promise<{ ok:boolean, retried:number }>}
- */
-async function runSegmentation() {
+/** 读取当前原图像素；失败时返回 null（已弹出错误提示） */
+function readSourceImageData() {
   const img = sourceImage.value
-  if (!img) return { ok: false, retried: 0 }
+  if (!img) return null
   const w = img.naturalWidth
   const h = img.naturalHeight
-
   const cv = document.createElement('canvas')
   cv.width = w
   cv.height = h
   const ctx = cv.getContext('2d', { willReadFrequently: true })
   ctx.drawImage(img, 0, 0)
-  let imageData
   try {
-    imageData = ctx.getImageData(0, 0, w, h)
+    return ctx.getImageData(0, 0, w, h)
   } catch (e) {
     msgError('无法读取图片像素，请更换图片后重试')
-    return { ok: false, retried: 0 }
+    return null
+  }
+}
+
+/** 把 AI 输出（较小尺寸）的 alpha 双线性放大回原图尺寸 */
+function upscaleAlpha(alpha, aw, ah, w, h) {
+  if (aw === w && ah === h) return alpha
+  const src = document.createElement('canvas')
+  src.width = aw
+  src.height = ah
+  const sd = new ImageData(aw, ah)
+  for (let i = 0; i < alpha.length; i++) {
+    const j = i * 4
+    sd.data[j] = 255
+    sd.data[j + 1] = 255
+    sd.data[j + 2] = 255
+    sd.data[j + 3] = alpha[i]
+  }
+  src.getContext('2d').putImageData(sd, 0, 0)
+
+  const dst = document.createElement('canvas')
+  dst.width = w
+  dst.height = h
+  const dc = dst.getContext('2d', { willReadFrequently: true })
+  dc.drawImage(src, 0, 0, w, h)
+  const out = dc.getImageData(0, 0, w, h).data
+  const res = new Uint8ClampedArray(w * h)
+  for (let i = 0; i < res.length; i++) res[i] = out[i * 4 + 3]
+  return res
+}
+
+/** 后半段通用流程：掩膜清理 → 边缘精修 → 去色边 → 主体框 → 渲染 */
+function commitAlpha(imageData, alpha, bg, retried = 0) {
+  const w = imageData.width
+  const h = imageData.height
+  const n = w * h
+  const mask = new Uint8Array(n)
+  for (let i = 0; i < n; i++) mask[i] = alpha[i] <= 128 ? 1 : 0
+
+  const cleaned = cleanMask(mask, w, h)
+  const refined = featherAlpha(refineEdgeAlpha(imageData, cleaned, bg, w, h), w, h, 1)
+  const decon = decontaminate(imageData, refined, bg)
+  const box = subjectBox(refined, w, h)
+
+  state.value = { imageData, bg, alpha: refined, decon, box }
+  drawCutout(decon, refined)
+  renderOutputs()
+  tab.value = 'result'
+  return { ok: true, retried }
+}
+
+/**
+ * 抠图 + 边缘精修，成功时更新 state 并渲染预览。
+ * @param {(note:string)=>void} [onProgress] AI 模式进度提示
+ * @param {'ai'|'adaptive'|'strict'} [forceAlgorithm] 指定算法（用于 AI 失败回退）
+ * @returns {Promise<{ ok:boolean, retried:number }>}
+ */
+async function runSegmentation(onProgress, forceAlgorithm) {
+  const imageData = readSourceImageData()
+  if (!imageData) return { ok: false, retried: 0 }
+  const w = imageData.width
+  const h = imageData.height
+  const alg = forceAlgorithm || algorithm.value
+
+  if (alg === 'ai') {
+    const file = currentFile.value
+    if (!file) {
+      msgError('请重新上传图片后再试 AI 抠图')
+      return { ok: false, retried: 0 }
+    }
+    const ai = await aiMatte(file, onProgress)
+    if (!ai.ok) {
+      msgWarning(`AI 模型加载失败，已回退到本地算法：${ai.reason}`)
+      return runSegmentation(onProgress, 'adaptive')
+    }
+    // AI 输出尺寸较小（最长边 800），放大回原图后再走后半段
+    const alpha = upscaleAlpha(ai.alpha, ai.width, ai.height, w, h)
+    const bg = detectBackgroundColor(imageData).bg
+    return commitAlpha(imageData, alpha, bg, 0)
   }
 
   const det = detectBackgroundColor(imageData)
   // 仅严格单色模式下，背景不均匀才阻止自动流程并切手动；自适应模式可处理渐变
-  if (mode.value === 'auto' && algorithm.value === 'strict' && det.variance > 60) {
+  if (mode.value === 'auto' && alg === 'strict' && det.variance > 60) {
     mode.value = 'manual'
     tab.value = 'original'
     msgError('背景颜色不均匀，已切换为手动模式：左键点选要去掉的背景（只抠你点的区域）、右键点选需保留的主体，然后点击「重新抠图」')
@@ -383,7 +468,7 @@ async function runSegmentation() {
     ? { eraseSeeds: eraseSeeds.value, keepSeeds: keepSeeds.value }
     : {}
   const seg = segmentBackground(imageData, {
-    mode: algorithm.value,
+    mode: alg,
     tol: Number(tol.value),
     tolLum: Number(tolLum.value),
     ...seedOpts
@@ -395,16 +480,7 @@ async function runSegmentation() {
   }
   if (seg.warning) msgWarning(seg.warning)
 
-  const cleaned = cleanMask(seg.mask, w, h)
-  const alpha = featherAlpha(refineEdgeAlpha(imageData, cleaned, seg.bg, w, h), w, h, 1)
-  const decon = decontaminate(imageData, alpha, seg.bg)
-  const box = subjectBox(alpha, w, h)
-
-  state.value = { imageData, bg: seg.bg, alpha, decon, box }
-  drawCutout(decon, alpha)
-  renderOutputs()
-  tab.value = 'result'
-  return { ok: true, retried: seg.retried || 0 }
+  return commitAlpha(imageData, seg.alpha, seg.bg, seg.retried || 0)
 }
 
 async function recompute() {
@@ -419,7 +495,7 @@ async function recompute() {
 }
 
 function onSeedClick(e, type) {
-  if (mode.value !== 'manual' || !sourceImage.value) return
+  if (!manualActive.value || !sourceImage.value) return
   const canvas = e.currentTarget
   const rect = canvas.getBoundingClientRect()
   if (!rect.width || !rect.height) return
@@ -454,7 +530,7 @@ async function processHandler(tasks) {
       clearCanvas(resultCanvasRef.value)
       drawOriginal()
 
-      const res = await runSegmentation()
+      const res = await runSegmentation((note) => { t.note = note })
       if (!res.ok) {
         t.status = 'failed'
         continue
@@ -499,6 +575,9 @@ async function downloadA4() {
     msgError(`下载失败：${e.message || e}`)
   }
 }
+
+// 后台预取 AI 模块（仅 JS，不触发 65MB 模型下载），失败静默
+onMounted(() => { preloadAi() })
 
 watch([bgMode, customColor, gradientOn, presetId, a4Enabled], () => {
   if (state.value) renderOutputs()

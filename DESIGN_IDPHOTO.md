@@ -60,7 +60,7 @@ accept = dist <= tol && lum <= tolLum
 ## 6. 边界与降级
 - 纯前端，不上传文件（隐私）
 - 背景非纯色时自动模式会失败 → 明确提示 + 一键切手动模式
-- AI 抠图不在本期范围（模型体积与国内 CDN 可达性），预留接口 `segmentBackground()` 便于以后替换
+- AI 抠图已于 A1 接入（见 §9），作为默认算法
 
 ## 7. 验收口径
 - 造测试图：纯蓝底 + 肤色椭圆头像 + 肩部矩形 → 自动抠图后：背景区 alpha<40、主体区 alpha>200、主体无蓝色残留（边缘像素蓝色通道增量 < 30）
@@ -99,3 +99,39 @@ accept = dist <= tol && lum <= tolLum
 - 灰度 / 极低对比（浅肤色 + 浅底）照片：自动模式会提示转手动，手动需多点几次
 - 背景中的实体物（旗帜、家具、画框）不会被区域生长移除 —— 需手动点选
 - 复杂轮廓（张开四肢的全身照）可能触发「边缘可能不完整」提示，属误报提示，不影响下载
+
+---
+
+## 9. AI 抠图模式（A1）
+
+### 9.1 模型选型
+- `@imgly/background-removal@1.4.5` + `@imgly/background-removal-data@1.4.5`，模型 `small`（ISNet 量化版），`device: 'cpu'`。
+- **不用 1.7.x**：其资源名改为 `isnet_quint8`，与 data@1.4.5 的分块清单不兼容。
+- 推理在浏览器内通过 onnxruntime-web（WASM）完成，无服务端。
+
+### 9.2 体积与自托管
+- 模型资产 64.6MB：`/models/small` 44.3MB + `ort-wasm.wasm` 9.7MB + `ort-wasm-simd.wasm` 10.5MB。
+- 资产位于 `public/imgly/`，由 `npm run sync:imgly`（`scripts/sync-imgly-assets.mjs`）从 node_modules 按分块哈希复制；
+  `resources.json` 只保留实际用到的三个条目，运行时按 `new URL(chunk.hash, publicPath)` 拉取。
+- 随仓库部署到 GitHub Pages（`.gitignore` 不忽略 `public/imgly/`），避免依赖境外 CDN。
+- 页面首次调用才 `import('@imgly/background-removal')`（懒加载），不拖慢全站首屏；模型由浏览器 HTTP 缓存复用。
+
+### 9.3 处理流程与耗时
+1. 输入先缩到最长边 800px（ISNet 输入越大越慢；800px 足够输出 295×413）。
+2. `removeBackground` 输出带 alpha 的 PNG；提取 alpha 后双线性放大回原图尺寸。
+3. 复用既有后半段：`cleanMask → refineEdgeAlpha → featherAlpha → decontaminate → composite → subjectBox → cropToBox`。
+   AI 模式 alpha 已是 0–255，不做 `segmentBackground`。
+4. 实测（dev，1280px 输入、CPU）：模型加载 + 推理约 34 秒（首次含 64.6MB 下载）；模型已缓存后主要耗时在推理。
+
+### 9.4 进度反馈
+- 任务行 `t.note`：fetch 阶段显示 `加载模型 44.3/64.6MB`（按 resources.json 总字节数为分母），compute 阶段显示 `AI 推理中…`。
+- 回调节流：最多每 500ms 更新一次，避免高频重渲染。
+
+### 9.5 失败回退
+- `aiMatte` 捕获所有异常并返回 `{ ok:false, reason }`（网络失败 / 模型加载失败 / 其他，转可读中文）。
+- 页面收到 `ok:false` 时自动用 `adaptive` 再跑一次，并弹 `AI 模型加载失败，已回退到本地算法：<reason>`。
+- AI 模式下隐藏手动点选种子操作（`manualActive = mode==='manual' && algorithm!=='ai'`）；手动模式仍可与 adaptive/strict 配合。
+
+### 9.6 隐私
+- 全本地：图片像素、模型推理、合成裁剪均在浏览器内完成，不上传任何服务器。
+- 模型资产由站点自身静态托管，加载请求不含用户图像数据。
