@@ -23,7 +23,8 @@ const TOOL_COMPONENTS = {
   '/image-grid': () => import('../views/tools/image-grid.vue'),
   '/image-watermark': () => import('../views/tools/image-watermark.vue'),
   '/imagesubtitle': () => import('../views/tools/imagesubtitle.vue'),
-  '/idphoto': () => import('../views/tools/idphoto.vue')
+  '/idphoto': () => import('../views/tools/idphoto.vue'),
+  '/textedit': () => import('../views/tools/textedit.vue')
 }
 
 // PDF 工具（T3）

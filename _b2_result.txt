@@ -1,0 +1,42 @@
+完成。全部验收通过。
+
+## 改动文件
+
+| 文件 | 类型 | 内容 |
+|---|---|---|
+| `public/migan/migan.onnx` | 新增 28.1MB | MI-GAN 模型（本地复制，MIT） |
+| `public/migan/ort/ort-wasm.wasm`<br>`public/migan/ort/ort-wasm-simd.wasm` | 新增 ~19.8MB | ORT WASM 后端自托管 |
+| `scripts/sync-migan-assets.mjs` | 新增 | 资产同步脚本（风格对齐 `sync-imgly-assets.mjs`，支持 `MIGAN_MODEL` 环境变量覆盖） |
+| `package.json` | 改 | 加 `"sync:migan"` 脚本；显式声明 `onnxruntime-web@^1.17.3` |
+| `src/lib/aiInpaint.js` | 新增 | `aiInpaint(imageData, mask, onProgress)`：懒加载 ORT + 模型、crop→512 推理→resize→只回贴 mask、60s 超时、进度回调 |
+| `src/views/tools/textedit.vue` | 改 | 修复方式双选（默认 AI）、AI 失败自动回退经典 + 警告提示、耗时/模型加载/推理分开显示 |
+
+## 关键修正
+
+MI-GAN 的 mask 极性与直觉相反：**0 = 待填充，255 = 保留**。此前按 1/0 传（且值域只有 0/1）导致模型把整张图当"全部保留"、输出重复纹理垃圾。修正为输出 0/255 反相后，修复质量正常。
+
+## 实测指标（AI 路径）
+
+```
+遮罩外像素最大改动 = 0        （外区 406,469 px，逐位不变）
+选区边界内外亮度差 = 0.58      （阈值 < 12）
+文字区 vs 无字基线平均像素差 = 1.45（阈值 < 35）
+```
+
+## 耗时（分开上报）
+
+| 阶段 | 首次（含模型下载） | 二次（会话已缓存） |
+|---|---|---|
+| 模型加载 | 1074 ms | 336 ms |
+| 512×512 推理 | 3325 ms | 2973 ms |
+| 端到端 | 4651 ms | 3360 ms |
+| 后处理 | lowFreq 92 ms + feather 24 ms | 同量级 |
+
+## 验收
+
+1. **build 零错误**，`dist/migan/` 含 `migan.onnx` + `ort/ort-wasm.wasm` + `ort-wasm-simd.wasm`（47MB）
+2. **E2E 14/14 通过**（`_verify/_b2_check.cjs`）：模式选择器默认 AI、拖图入画布、AI 应用、三态切换、PNG 同尺寸下载、三项硬指标、耗时分开上报
+3. **回退实测通过**：Playwright 拦截 `**/migan/**` → 404，页面弹出「AI 修复失败，已回退经典修复：模型资源加载失败（资源缺失或网络不可用）」，经典路径 280ms 出图，已选区与已输入文字（`FALLBACK 99`）均保留，无 pageerror
+4. `public/migan/` **未被 gitignore**（`git check-ignore` 退出码 1）
+
+未执行任何 git 操作。

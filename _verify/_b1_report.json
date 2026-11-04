@@ -1,0 +1,99 @@
+{
+  "results": [
+    {
+      "name": "route /#/textedit 渲染",
+      "ok": true,
+      "detail": "图片改字 / 图片改字"
+    },
+    {
+      "name": "上传区 + 使用说明",
+      "ok": true,
+      "detail": "usage=5"
+    },
+    {
+      "name": "拖入图片自动载入画布",
+      "ok": true,
+      "detail": "{\"w\":900,\"h\":500}"
+    },
+    {
+      "name": "画笔产生选区（可撤销）",
+      "ok": true,
+      "detail": "{\"canUndo\":true,\"applyEnabled\":false,\"colorVal\":\"#1b2430\"}"
+    },
+    {
+      "name": "自动取样字色（深色）",
+      "ok": true,
+      "detail": "#1b2430"
+    },
+    {
+      "name": "撤销后选区为空 → 应用禁用",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "name": "应用后进入「最终」三态",
+      "ok": true,
+      "detail": "[{\"text\":\"原图\",\"disabled\":false,\"active\":false},{\"text\":\"已修复\",\"disabled\":false,\"active\":false},{\"text\":\"最终\",\"disabled\":false,\"active\":true}]"
+    },
+    {
+      "name": "下载 PNG 与原图同尺寸",
+      "ok": true,
+      "detail": "900x500 file=b1_test_改字.png bytes=415130"
+    },
+    {
+      "name": "遮罩外像素最大改动 = 0",
+      "ok": true,
+      "detail": "0（外区像素 406469）"
+    },
+    {
+      "name": "选区边界内外亮度差 < 12",
+      "ok": true,
+      "detail": "0.34"
+    },
+    {
+      "name": "文字区 vs 无字基线平均像素差 < 35",
+      "ok": true,
+      "detail": "0.60"
+    },
+    {
+      "name": "单张经典修复耗时 < 2s",
+      "ok": true,
+      "detail": "145ms"
+    },
+    {
+      "name": "UI 应用总耗时（含写字/渲染）",
+      "ok": true,
+      "detail": "227ms"
+    },
+    {
+      "name": "无 console 错误",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "metrics": {
+    "maskPx": 43531,
+    "maxOutDiff": 0,
+    "outCount": 406469,
+    "boundaryDiff": 0.3381392469509308,
+    "regionDiff": 0.6048716240533566,
+    "finalDiff": 38.83509835902384,
+    "fontSize": 73,
+    "box": {
+      "x": 237,
+      "y": 202,
+      "w": 431,
+      "h": 101
+    },
+    "timing": {
+      "expand": 13.5,
+      "inpaint": 47.89999997615814,
+      "lowFreq": 67.60000002384186,
+      "feather": 16,
+      "total": 145
+    },
+    "elapsed": 145
+  },
+  "applyMs": 227,
+  "consoleErrors": []
+}

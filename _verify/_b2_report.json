@@ -1,0 +1,97 @@
+{
+  "results": [
+    {
+      "name": "修复方式选择器（默认 AI）",
+      "ok": true,
+      "detail": "[{\"text\":\"AI 修复（推荐）\",\"active\":true},{\"text\":\"经典修复（快速）\",\"active\":false}]"
+    },
+    {
+      "name": "拖入图片自动载入画布",
+      "ok": true,
+      "detail": "{\"w\":900,\"h\":500}"
+    },
+    {
+      "name": "AI 应用后进入「最终」三态",
+      "ok": true,
+      "detail": "[{\"text\":\"原图\",\"disabled\":false,\"active\":false},{\"text\":\"已修复\",\"disabled\":false,\"active\":false},{\"text\":\"最终\",\"disabled\":false,\"active\":true}]"
+    },
+    {
+      "name": "AI 路径标识 + 耗时分开上报",
+      "ok": true,
+      "detail": "AI 修复耗时 4651 ms | 模型加载 1074 ms / 推理 3325 ms"
+    },
+    {
+      "name": "下载 PNG 与原图同尺寸",
+      "ok": true,
+      "detail": "900x500 file=b2_test_改字.png bytes=502581"
+    },
+    {
+      "name": "遮罩外像素最大改动 = 0",
+      "ok": true,
+      "detail": "0（外区像素 406469）"
+    },
+    {
+      "name": "选区边界内外亮度差 < 12",
+      "ok": true,
+      "detail": "0.58"
+    },
+    {
+      "name": "文字区 vs 无字基线平均像素差 < 35",
+      "ok": true,
+      "detail": "1.45"
+    },
+    {
+      "name": "AI 单张耗时 < 30s（不含首次模型下载）",
+      "ok": true,
+      "detail": "load=336ms infer=2973ms wall=3360ms"
+    },
+    {
+      "name": "AI 资源缺失 → 出现回退提示",
+      "ok": true,
+      "detail": "AI 修复失败，已回退经典修复：模型资源加载失败（资源缺失或网络不可用）"
+    },
+    {
+      "name": "回退后仍产出最终图（经典路径）",
+      "ok": true,
+      "detail": "经典修复耗时 280 ms | 文字宽 354 px / 选区高 78 px"
+    },
+    {
+      "name": "回退不影响已选区与已输入文字",
+      "ok": true,
+      "detail": "undo=true text=FALLBACK 99"
+    },
+    {
+      "name": "回退页无 pageerror",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "无 console 错误（AI 页）",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "metrics": {
+    "maskPx": 43531,
+    "maxOutDiff": 0,
+    "outCount": 406469,
+    "boundaryDiff": 0.5790570067167096,
+    "regionDiff": 1.44591976599052,
+    "finalDiff": 38.93923104607445,
+    "aiLoadMs": 336,
+    "aiInferMs": 2973,
+    "aiWall": 3359.9000000059605,
+    "postMs": {
+      "lowFreq": 91.59999999403954,
+      "feather": 24.19999998807907
+    },
+    "box": {
+      "x": 237,
+      "y": 202,
+      "w": 431,
+      "h": 101
+    }
+  },
+  "applyMs": 4702,
+  "consoleErrors": []
+}
