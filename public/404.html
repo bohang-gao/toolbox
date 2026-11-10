@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>页面跳转中 · Toolbox</title>
+<style>
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+       background:#f4f6fa;color:#1f2937;font:15px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,"Microsoft YaHei",sans-serif}
+  .card{background:#fff;border:1px solid #e8ecf3;border-radius:12px;padding:30px 36px;max-width:440px;text-align:center;
+        box-shadow:0 1px 3px rgba(16,24,40,.06)}
+  h1{font-size:19px;margin:0 0 10px}
+  p{margin:0 0 16px;color:#6b7280;font-size:14px}
+  a.btn{display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;padding:10px 20px;border-radius:8px;font-weight:500}
+  code{background:#f3f4f6;padding:1px 5px;border-radius:4px;font-size:13px}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>正在跳转到对应工具…</h1>
+  <p>本站使用前端路由（<code>/#/路由</code>），正在把地址自动转换成正确形式。</p>
+  <a class="btn" id="go" href="/">立即前往</a>
+</div>
+<script>
+(function () {
+  // 部署在 https://<user>.github.io/<repo>/ 下，第一段即仓库名
+  var seg = location.pathname.split('/').filter(Boolean);
+  var base = seg.length ? '/' + seg[0] + '/' : '/';
+  var rest = seg.slice(1).join('/');
+  var hash = location.hash || '';
+  // 已有 hash 路由 → 直接去根
+  var target = base + (hash ? hash : (rest ? '#/' + rest + location.search : '#/'));
+  document.getElementById('go').setAttribute('href', target);
+  location.replace(target);
+})();
+</script>
+</body>
+</html>
