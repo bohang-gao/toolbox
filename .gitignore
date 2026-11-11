@@ -15,3 +15,6 @@ run_w*.sh
 _a*_result.txt
 _a*_stderr.log
 _run_*.sh
+
+# 逆向/侦察临时目录（源站副本、worker 提示词、日志）
+_recon/
