@@ -2,10 +2,11 @@
   <ToolShell
     path="/coord/distance"
     title="经纬度距离计算"
-    intro="计算两点间的球面距离（Haversine）与椭球距离（Vincenty 反算），给出起点 / 终点方位角及两种模型的差值；另提供已知起点、方位角与距离的 Vincenty 正算。"
+    intro="计算两点间的球面距离（Haversine）与椭球距离（Vincenty 反算），给出起点 / 终点方位角及两种模型的差值，并反查两端所在行政区划与地址；另提供已知起点、方位角与距离的 Vincenty 正算。"
     :usage="[
       '填入两点的纬度、经度（单位：十进制度），选择椭球基准。',
       '距离同时以米、千米、海里输出；方位角自正北顺时针，单位度。',
+      '「查询两端地址」按 WGS84 坐标调用 OpenStreetMap Nominatim 反查起点 / 终点位置，失败时回退 BigDataCloud；需联网，结果仅供定位参考。',
       '正算模块输入起点、方位角与距离，得到终点经纬度与终点方位角。'
     ]"
   >
@@ -84,7 +85,49 @@
     </div>
 
     <div class="step-block">
-      <div class="step"><b>3</b> 正算：起点 + 方位角 + 距离 → 终点</div>
+      <div class="step"><b>3</b> 两端地址</div>
+      <div class="option-panel">
+        <div class="flex flex-wrap" style="gap:10px;align-items:center">
+          <button type="button" class="el-button" :disabled="geo.status === 'loading'" @click="lookupPlaces">
+            {{ geo.status === 'loading' ? '查询中…' : '查询两端地址' }}
+          </button>
+          <span class="tool-note" style="margin:0">按 WGS84 坐标反查起点 / 终点所在行政区划与地址（需联网）</span>
+        </div>
+
+        <div v-if="geo.status === 'error'" class="result-box mt-4" style="color:#e54d42">{{ geo.error }}</div>
+
+        <table v-if="geo.status === 'ok'" class="data-table mt-4">
+          <thead>
+            <tr>
+              <th style="width:88px">位置</th>
+              <th>坐标（WGS84）</th>
+              <th>行政区划</th>
+              <th>详细地址</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="p in geo.points" :key="p.label">
+              <td>{{ p.label }}</td>
+              <td>{{ p.lon.toFixed(6) }}, {{ p.lat.toFixed(6) }}</td>
+              <td>{{ p.region || '—' }}</td>
+              <td>{{ p.display || '—' }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <template v-if="geo.status === 'ok'">
+          <div class="result-box mt-4">{{ geo.text }}</div>
+          <div class="flex flex-wrap mt-4" style="gap:10px">
+            <button type="button" class="el-button el-button--info" @click="copyText(geo.text, '两端地址已复制')">复制地址</button>
+            <a class="el-button" :href="geo.links.start" target="_blank" rel="noopener">起点 OSM</a>
+            <a class="el-button" :href="geo.links.end" target="_blank" rel="noopener">终点 OSM</a>
+          </div>
+        </template>
+        <div v-else-if="geo.status === 'idle'" class="tool-note">点「计算距离」确定两端坐标后，再点「查询两端地址」即可得到起点与终点的省市区和详细地址。</div>
+      </div>
+    </div>
+
+    <div class="step-block">
+      <div class="step"><b>4</b> 正算：起点 + 方位角 + 距离 → 终点</div>
       <div class="option-panel">
         <div class="coord-grid">
           <label>
@@ -129,11 +172,12 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
 import ToolShell from '../../../components/ToolShell.vue'
 import { msgError } from '../../../lib/ui.js'
 import { copyText } from '../textkit.js'
 import { ELLIPSOIDS, haversine, vincentyInverse, vincentyDirect } from '../coordkit.js'
+import { reverseGeocode } from '../revgeo.js'
 
 const ELL_OPTIONS = ['WGS84', 'CGCS2000']
 
@@ -184,6 +228,7 @@ function calcInverse() {
   const h = haversine(lat1, lon1, lat2, lon2)
   const v = vincentyInverse(lat1, lon1, lat2, lon2, ell.value)
   result.value = { lat1, lon1, lat2, lon2, h, v, diff: h - v.distance }
+  resetGeo()
 }
 
 function calcDirect() {
@@ -241,6 +286,84 @@ function copyDirect() {
   copyText(text, '正算结果已复制')
 }
 
+// ===== 两端地址反查 =====
+const geo = reactive({
+  status: 'idle', // idle | loading | ok | error
+  error: '',
+  points: [],
+  text: '',
+  links: { start: '', end: '' }
+})
+
+function resetGeo() {
+  geo.status = 'idle'
+  geo.error = ''
+  geo.points = []
+  geo.text = ''
+  geo.links = { start: '', end: '' }
+}
+
+async function lookupPlaces() {
+  if (!result.value) {
+    calcInverse()
+    if (!result.value) return
+  }
+  const r = result.value
+  geo.status = 'loading'
+  geo.error = ''
+  geo.points = []
+  geo.text = ''
+
+  const targets = [
+    { label: '起点', lat: r.lat1, lon: r.lon1 },
+    { label: '终点', lat: r.lat2, lon: r.lon2 }
+  ]
+
+  const points = []
+  const notes = []
+  for (const t of targets) {
+    try {
+      const info = await reverseGeocode(t.lat, t.lon)
+      points.push({
+        label: t.label,
+        lat: t.lat,
+        lon: t.lon,
+        region: info.region || '—',
+        display: info.display || info.name || '—',
+        source: info.source
+      })
+    } catch (e) {
+      const msg = e && e.kind === 'no-address' ? '该坐标无收录地址（多为海域或无人区）' : '查询失败，可稍后重试'
+      points.push({ label: t.label, lat: t.lat, lon: t.lon, region: msg, display: '—', source: '' })
+      notes.push(`${t.label}：${msg}`)
+    }
+  }
+
+  geo.points = points
+  geo.links = {
+    start: `https://www.openstreetmap.org/?mlat=${r.lat1}&mlon=${r.lon1}#map=14/${r.lat1}/${r.lon1}`,
+    end: `https://www.openstreetmap.org/?mlat=${r.lat2}&mlon=${r.lon2}#map=14/${r.lat2}/${r.lon2}`
+  }
+  geo.text = [
+    '两端地址（OpenStreetMap / BigDataCloud 逆地理编码）',
+    ...points.map((p) =>
+      [
+        `${p.label}：${p.lon.toFixed(6)}, ${p.lat.toFixed(6)}`,
+        `　行政区划：${p.region || '—'}`,
+        `　地址：${p.display || '—'}`
+      ].join('\n')
+    )
+  ].join('\n')
+
+  if (points.every((p) => !p.source)) {
+    geo.status = 'error'
+    geo.error = `两端地址均查询失败（${notes.join('；')}）。可能是网络受限或接口限流，可稍后重试。`
+    return
+  }
+  geo.status = 'ok'
+  if (notes.length) geo.error = notes.join('；')
+}
+
 function clearAll() {
   lat1Input.value = ''
   lon1Input.value = ''
@@ -252,6 +375,7 @@ function clearAll() {
   bearingInput.value = ''
   distInput.value = ''
   direct.value = null
+  resetGeo()
 }
 
 calcInverse()
