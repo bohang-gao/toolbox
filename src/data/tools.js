@@ -82,7 +82,7 @@ export const COORD_TOOLS = [
   { name: 'WGS84与CGCS2000转换', path: '/coord/wgs84-cgcs2000', icon: 'fa-retweet', color: '#6739b6', desc: '两套国家基准互转' },
   { name: '基站坐标计算', path: '/coord/base-station', icon: 'fa-signal', color: '#e54d42', desc: '多测回观测值加权平差' },
   { name: 'NTRIP Source-Table', path: '/coord/ntrip-sourcetable', icon: 'fa-server', color: '#9c26b0', desc: '挂载点表解析与生成' },
-  { name: 'NMEA-0183协议解析', path: '/coord/nmea0183', icon: 'fa-satellite-dish', color: '#0081ff', desc: 'GGA/RMC/GSA/GSV 逐字段解析' },
+  { name: 'NMEA-0183协议解析', path: '/coord/nmea0183', icon: 'fa-rss', color: '#0081ff', desc: 'GGA/RMC/GSA/GSV 逐字段解析' },
   { name: 'Geohash编码解码', path: '/coord/geohash', icon: 'fa-th', color: '#8dc63f', desc: '经纬度与 Geohash 互转' },
   { name: 'RTCM3数据解析', path: '/coord/rtcm3', icon: 'fa-microchip', color: '#a5673f', desc: '帧结构、消息类型与 CRC24Q 校验' }
 ]

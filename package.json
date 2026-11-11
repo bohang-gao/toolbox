@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "test": "node tests/coordkit.test.mjs",
+    "test": "node tests/coordkit.test.mjs && node tests/icons.test.mjs",
     "preview": "vite preview",
     "sync:imgly": "node scripts/sync-imgly-assets.mjs",
     "sync:migan": "node scripts/sync-migan-assets.mjs"
