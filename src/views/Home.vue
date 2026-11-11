@@ -79,7 +79,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { IMG_TOOLS, PDF_TOOLS, MORE_TOOLS, ALL_TOOLS, ALL_SECTIONS } from '../data/tools.js'
+import { IMG_TOOLS, PDF_TOOLS, MORE_TOOLS, COORD_TOOLS, ALL_TOOLS, ALL_SECTIONS } from '../data/tools.js'
 import RecentTools from '../components/RecentTools.vue'
 
 const route = useRoute()
@@ -87,13 +87,15 @@ const route = useRoute()
 const CATEGORIES = {
   img: { key: 'img', title: '图片工具', desc: '压缩、转换、拼图、水印等图像处理', tools: IMG_TOOLS },
   pdf: { key: 'pdf', title: 'PDF 文档工具', desc: '合并、拆分、转换、加水印等文档处理', tools: PDF_TOOLS },
-  text: { key: 'text', title: '文本编码工具', desc: '编码转换、加密、Hash 等开发常用', tools: MORE_TOOLS }
+  text: { key: 'text', title: '文本编码工具', desc: '编码转换、加密、Hash 等开发常用', tools: MORE_TOOLS },
+  coord: { key: 'coord', title: '坐标工具', desc: '坐标系转换、投影、距离、GNSS 协议解析', tools: COORD_TOOLS }
 }
 
 const SECTION_DESC = {
   '图片工具': CATEGORIES.img.desc,
   '文档工具': CATEGORIES.pdf.desc,
-  '其他工具': CATEGORIES.text.desc
+  '其他工具': CATEGORIES.text.desc,
+  '坐标工具': CATEGORIES.coord.desc
 }
 
 const searchQuery = computed(() => {

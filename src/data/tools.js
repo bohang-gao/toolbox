@@ -61,10 +61,37 @@ export const MORE_TOOLS = [
   { name: '摩斯电码', path: '/morse', icon: 'fa-phone-square', color: '#a5673f', desc: '摩斯电码编码，摩斯电码解码' }
 ]
 
+export const COORD_TOOLS = [
+  { name: '在线地图坐标系转换', path: '/coord/map-convert', icon: 'fa-map-o', color: '#1cbbb4', desc: 'WGS84、GCJ02、BD09 批量互转' },
+  { name: '经纬度查询定位', path: '/coord/position', icon: 'fa-map-marker', color: '#e54d42', desc: '坐标与地图位置互查' },
+  { name: '经纬度和度分秒转换', path: '/coord/degree-convert', icon: 'fa-circle-o-notch', color: '#0081ff', desc: '十进制度与度分秒互转' },
+  { name: '经纬度距离计算', path: '/coord/distance', icon: 'fa-arrows-h', color: '#f37b1d', desc: '球面与椭球距离、方位角' },
+  { name: '大地坐标与空间直角坐标转换', path: '/coord/geodetic-ecef', icon: 'fa-cube', color: '#6739b6', desc: 'BLH 与 XYZ 双向转换' },
+  { name: '七参数坐标转换', path: '/coord/helmert', icon: 'fa-retweet', color: '#9c26b0', desc: 'Bursa-Wolf 七参数正反算' },
+  { name: '坐标投影计算', path: '/coord/projection', icon: 'fa-map', color: '#39b54a', desc: 'TM、UTM、Web 墨卡托投影' },
+  { name: '坐标轴交换', path: '/coord/axis-swap', icon: 'fa-exchange', color: '#a5673f', desc: 'XYZ 轴任意重排' },
+  { name: 'ECEF与站心ENU转换', path: '/coord/ecef-enu', icon: 'fa-crosshairs', color: '#1cbbb4', desc: '空间直角与站心坐标互转' },
+  { name: '莫洛登斯基-巴德卡斯转换', path: '/coord/molodensky-badekas', icon: 'fa-random', color: '#9c26b0', desc: '带旋转中心的七参数转换' },
+  { name: '莫洛登斯基转换', path: '/coord/molodensky', icon: 'fa-random', color: '#6739b6', desc: '大地坐标直接改正的三/七参数' },
+  { name: '直角坐标与极坐标转换', path: '/coord/polar-cartesian', icon: 'fa-dot-circle-o', color: '#0081ff', desc: '二维/三维极坐标互转' },
+  { name: '坐标系转换说明', path: '/coord/coordinate-doc', icon: 'fa-book', color: '#8799a3', desc: '各坐标系定义与转换公式速查' },
+  { name: '坐标单位转换', path: '/coord/unit-converter', icon: 'fa-calculator', color: '#0081ff', desc: '角度与长度单位换算' },
+  { name: '大地纬度转地心纬度', path: '/coord/geodetic-latitude', icon: 'fa-globe', color: '#39b54a', desc: '大地纬度与地心纬度互转' },
+  { name: 'ITRF坐标转换', path: '/coord/itrf', icon: 'fa-globe', color: '#1cbbb4', desc: '不同 ITRF 框架历元归算' },
+  { name: '坐标转换参数求解', path: '/coord/param-solve', icon: 'fa-cogs', color: '#f37b1d', desc: '由公共点最小二乘求七参数' },
+  { name: 'WGS84与CGCS2000转换', path: '/coord/wgs84-cgcs2000', icon: 'fa-retweet', color: '#6739b6', desc: '两套国家基准互转' },
+  { name: '基站坐标计算', path: '/coord/base-station', icon: 'fa-signal', color: '#e54d42', desc: '多测回观测值加权平差' },
+  { name: 'NTRIP Source-Table', path: '/coord/ntrip-sourcetable', icon: 'fa-server', color: '#9c26b0', desc: '挂载点表解析与生成' },
+  { name: 'NMEA-0183协议解析', path: '/coord/nmea0183', icon: 'fa-satellite-dish', color: '#0081ff', desc: 'GGA/RMC/GSA/GSV 逐字段解析' },
+  { name: 'Geohash编码解码', path: '/coord/geohash', icon: 'fa-th', color: '#8dc63f', desc: '经纬度与 Geohash 互转' },
+  { name: 'RTCM3数据解析', path: '/coord/rtcm3', icon: 'fa-microchip', color: '#a5673f', desc: '帧结构、消息类型与 CRC24Q 校验' }
+]
+
 export const ALL_SECTIONS = [
   { title: '图片工具', tools: IMG_TOOLS },
   { title: '文档工具', tools: PDF_TOOLS },
-  { title: '其他工具', tools: MORE_TOOLS }
+  { title: '其他工具', tools: MORE_TOOLS },
+  { title: '坐标工具', tools: COORD_TOOLS }
 ]
 
 export const ALL_TOOLS = ALL_SECTIONS.flatMap(s => s.tools)

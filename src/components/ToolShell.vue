@@ -47,8 +47,8 @@ const props = defineProps({
   usage: [String, Array]
 })
 
-const CATEGORY_NAMES = ['图片工具', '文档工具', '其他工具']
-const CATEGORY_PATHS = ['/c/img', '/c/pdf', '/c/text']
+const CATEGORY_NAMES = ['图片工具', '文档工具', '其他工具', '坐标工具']
+const CATEGORY_PATHS = ['/c/img', '/c/pdf', '/c/text', '/c/coord']
 
 const meta = computed(() => ALL_TOOLS.find(t => t.path === props.path) || { name: props.title || '工具', desc: '', icon: 'fa-wrench', color: '#3b82f6' })
 

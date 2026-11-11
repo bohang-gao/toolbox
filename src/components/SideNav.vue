@@ -55,7 +55,8 @@ const menu = [
   { label: '全部工具', to: '/', icon: 'fa-th-large' },
   { label: '图片工具', to: '/c/img', icon: 'fa-file-image-o' },
   { label: 'PDF 文档工具', to: '/c/pdf', icon: 'fa-file-pdf-o' },
-  { label: '文本编码工具', to: '/c/text', icon: 'fa-code' }
+  { label: '文本编码工具', to: '/c/text', icon: 'fa-code' },
+  { label: '坐标工具', to: '/c/coord', icon: 'fa-globe' }
 ]
 
 const route = useRoute()

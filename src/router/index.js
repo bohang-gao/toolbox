@@ -66,6 +66,34 @@ const TEXT_TOOL_COMPONENTS = {
 }
 Object.assign(TOOL_COMPONENTS, TEXT_TOOL_COMPONENTS)
 
+// 坐标工具（与 lddgo 坐标分类对齐，纯前端实现）
+const COORD_TOOL_COMPONENTS = {
+  '/coord/map-convert': () => import('../views/tools/coord/map-convert.vue'),
+  '/coord/position': () => import('../views/tools/coord/position.vue'),
+  '/coord/degree-convert': () => import('../views/tools/coord/degree-convert.vue'),
+  '/coord/distance': () => import('../views/tools/coord/distance.vue'),
+  '/coord/geodetic-ecef': () => import('../views/tools/coord/geodetic-ecef.vue'),
+  '/coord/helmert': () => import('../views/tools/coord/helmert.vue'),
+  '/coord/projection': () => import('../views/tools/coord/projection.vue'),
+  '/coord/axis-swap': () => import('../views/tools/coord/axis-swap.vue'),
+  '/coord/ecef-enu': () => import('../views/tools/coord/ecef-enu.vue'),
+  '/coord/molodensky-badekas': () => import('../views/tools/coord/molodensky-badekas.vue'),
+  '/coord/molodensky': () => import('../views/tools/coord/molodensky.vue'),
+  '/coord/polar-cartesian': () => import('../views/tools/coord/polar-cartesian.vue'),
+  '/coord/coordinate-doc': () => import('../views/tools/coord/coordinate-doc.vue'),
+  '/coord/unit-converter': () => import('../views/tools/coord/unit-converter.vue'),
+  '/coord/geodetic-latitude': () => import('../views/tools/coord/geodetic-latitude.vue'),
+  '/coord/itrf': () => import('../views/tools/coord/itrf.vue'),
+  '/coord/param-solve': () => import('../views/tools/coord/param-solve.vue'),
+  '/coord/wgs84-cgcs2000': () => import('../views/tools/coord/wgs84-cgcs2000.vue'),
+  '/coord/base-station': () => import('../views/tools/coord/base-station.vue'),
+  '/coord/ntrip-sourcetable': () => import('../views/tools/coord/ntrip-sourcetable.vue'),
+  '/coord/nmea0183': () => import('../views/tools/coord/nmea0183.vue'),
+  '/coord/geohash': () => import('../views/tools/coord/geohash.vue'),
+  '/coord/rtcm3': () => import('../views/tools/coord/rtcm3.vue')
+}
+Object.assign(TOOL_COMPONENTS, COORD_TOOL_COMPONENTS)
+
 // 其余工具全部走通用 ToolPageView（各工具面板由后续任务按 SPEC §5 实现）
 const toolRoutes = ALL_TOOLS
   .filter(t => !STUB_PATHS.includes(t.path))
@@ -81,6 +109,7 @@ const routes = [
   { path: '/c/img', component: Home, meta: { cat: 'img' } },
   { path: '/c/pdf', component: Home, meta: { cat: 'pdf' } },
   { path: '/c/text', component: Home, meta: { cat: 'text' } },
+  { path: '/c/coord', component: Home, meta: { cat: 'coord' } },
   ...STUB_PATHS.map(p => {
     const t = ALL_TOOLS.find(x => x.path === p)
     return { path: p, component: () => import('../views/Stub.vue'), meta: { title: t ? t.name : '工具', tool: t } }
