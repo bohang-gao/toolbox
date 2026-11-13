@@ -3,53 +3,58 @@
     path="/rf/arfcn"
     title="NR 频点换算"
     desc="NR-ARFCN 与频率的双向换算（TS 38.104 表 5.4.2.1-1 三段全局频率栅格）"
-    intro="输入 NR-ARFCN 或频率（MHz / GHz），按 3GPP TS 38.104 表 5.4.2.1-1 的三段全局频率栅格双向换算，并自动做一次往返校验。"
+    intro="NR-ARFCN 与频率两个输入框双向联动：在任一侧填入数值，另一侧即时显示换算结果，并按 3GPP TS 38.104 表 5.4.2.1-1 的三段全局频率栅格给出所属段、栅格偏差与往返校验。"
     :usage="[
-      '选择换算模式，填入 ARFCN（0 ~ 3279165 的整数）或频率；频率模式可切换 MHz / GHz，选 GHz 时先乘 1000 换成 MHz 再计算。',
-      '按回车或点「计算」。频率不落在 NR 栅格点上时，结果会给出最近的 N_REF 及其偏差（kHz）。',
+      '在「N_REF（ARFCN）」填入 0 ~ 3279165 的整数，右侧频率框即时显示对应 F_REF；反过来在频率框填数值，ARFCN 框即时显示最近的 N_REF。',
+      '频率支持 MHz / GHz 切换，切换后换算值按新单位重新显示。',
+      '频率不落在 NR 栅格点上时，ARFCN 框显示的是最近的 N_REF，结果区会给出偏差（kHz）与是否精确命中。',
       '所有数值均按 TS 38.104 表 5.4.2.1-1 计算，页面底部附三段栅格参数表；第三段 F_REF-Offs 取规范值 24250 MHz。'
     ]"
   >
     <div class="step-block">
-      <div class="step"><b>1</b> 输入与参数</div>
+      <div class="step"><b>1</b> 输入（任填一侧，另一侧自动换算）</div>
       <div class="option-panel">
-        <div class="field-grid">
-          <div class="field">
-            <span class="form-label">换算模式</span>
-            <div class="radio-row">
-              <label class="el-radio"><input v-model="mode" type="radio" value="toFreq" />ARFCN → 频率</label>
-              <label class="el-radio"><input v-model="mode" type="radio" value="toArfcn" />频率 → ARFCN</label>
-            </div>
-          </div>
-          <label class="field">
-            <span class="form-label">{{ mode === 'toFreq' ? 'N_REF（ARFCN）' : `频率（${unit}）` }}</span>
+        <div class="coord-grid">
+          <label>
+            <span class="form-label">N_REF（ARFCN）</span>
             <input
-              v-model="value"
-              class="el-input__inner"
+              v-model="arfcnInput"
+              class="el-input__inner mt-2"
+              type="text"
+              inputmode="numeric"
+              spellcheck="false"
+              placeholder="0 ~ 3279165"
+              @input="syncFromArfcn"
+              @keyup.enter="syncFromArfcn"
+            />
+          </label>
+          <label>
+            <span class="form-label">频率（{{ unit }}）</span>
+            <input
+              v-model="freqInput"
+              class="el-input__inner mt-2"
               type="text"
               inputmode="decimal"
               spellcheck="false"
-              :placeholder="mode === 'toFreq' ? '432000' : '2160'"
-              @keyup.enter="calc"
+              :placeholder="unit === 'GHz' ? '2.16' : '2160'"
+              @input="syncFromFreq"
+              @keyup.enter="syncFromFreq"
             />
           </label>
-          <label v-if="mode === 'toArfcn'" class="field">
-            <span class="form-label">频率单位</span>
-            <select v-model="unit" class="el-input__inner">
-              <option value="MHz">MHz</option>
-              <option value="GHz">GHz</option>
-            </select>
-          </label>
-          <div class="field">
-            <span class="form-label">示例</span>
-            <button type="button" class="el-button" @click="fillSample">填入示例</button>
-          </div>
         </div>
 
-        <div class="tool-note">
-          <template v-if="mode === 'toFreq'">输入 0 ~ 3279165 之间的整数 ARFCN，换算得到对应的 F_REF。</template>
-          <template v-else>输入中心频率，换算得到最近的 N_REF；GHz 会自动乘 1000 转成 MHz。</template>
+        <div class="flex flex-wrap mt-4" style="gap:10px;align-items:center">
+          <span class="form-label" style="margin:0">频率单位</span>
+          <select v-model="unit" class="el-input__inner unit-select" @change="onUnitChange">
+            <option value="MHz">MHz</option>
+            <option value="GHz">GHz</option>
+          </select>
+          <button type="button" class="el-button" @click="fillSample">填入示例</button>
+          <span class="tool-note" style="margin:0">示例：ARFCN 432000 ↔ 2160 MHz</span>
         </div>
+
+        <div v-if="error" class="result-box mt-4" style="color:#e54d42">{{ error }}</div>
+        <div v-else class="tool-note">两侧任填其一即可，输入过程中实时换算，无需点按钮。</div>
       </div>
     </div>
 
@@ -57,7 +62,9 @@
       <div class="step"><b>2</b> 换算结果</div>
       <div class="option-panel">
         <template v-if="result">
-          <div v-if="result.warn" class="result-box mt-2">{{ result.warn }}</div>
+          <div v-if="result.warn" class="result-box mt-2" style="color:#b45309;border-color:#fde68a;background:#fffbeb">
+            {{ result.warn }}
+          </div>
           <table class="data-table">
             <tbody>
               <tr v-for="([k, v]) in result.rows" :key="k">
@@ -71,12 +78,11 @@
             <button type="button" class="el-button el-button--info" @click="copyText(result.text, '结果已复制')">复制结果</button>
           </div>
         </template>
-        <div v-else class="tool-note">填写上方参数后点击「计算」，结果会显示在这里。</div>
+        <div v-else class="tool-note">在任一输入框填入 ARFCN 或频率，换算结果会显示在这里。</div>
       </div>
     </div>
 
     <div class="step-actions">
-      <button type="button" class="el-button el-button--primary" @click="calc">计算</button>
       <button type="button" class="el-button el-button--info" @click="clearAll">清空</button>
     </div>
 
@@ -117,9 +123,8 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import ToolShell from '../../../components/ToolShell.vue'
-import { msgError } from '../../../lib/ui.js'
 import { copyText } from '../textkit.js'
 import {
   ARFCN_SEGMENTS,
@@ -131,26 +136,26 @@ import {
   formatFreq
 } from '../nrkit.js'
 
-const mode = ref('toFreq')
-const value = ref('432000')
+const arfcnInput = ref('432000')
+const freqInput = ref('2160')
 const unit = ref('MHz')
 const result = ref(null)
-
-watch([mode, unit], () => {
-  result.value = null
-})
-
-function numOf(v) {
-  const t = String(v == null ? '' : v).trim()
-  if (t === '') return NaN
-  const n = Number(t)
-  return Number.isFinite(n) ? n : NaN
-}
+const error = ref('')
+/** 用户最后编辑的是哪一侧：'arfcn' | 'freq'，切换单位时以它为准 */
+const lastSide = ref('arfcn')
 
 const fmtMHz = (f) => `${Number(f).toFixed(3)} MHz`
 const fmtKHz = (v) => `${Number(v).toFixed(3)} kHz`
-/** 回显用户输入频率：保留 6 位小数并去掉末尾多余的 0 */
+/** 回显数值：最多 6 位小数，去掉末尾多余的 0 */
 const trimNum = (v) => String(Number(Number(v).toFixed(6)))
+/** 单位换算用：9 位小数，避免 MHz → GHz → MHz 往返丢精度（如 2160.0025） */
+const trimNum9 = (v) => String(Number(Number(v).toFixed(9)))
+
+/** 频率换算值在输入框里的回显文本（按当前单位） */
+function freqFieldText(freqMHz) {
+  const v = unit.value === 'GHz' ? Number(freqMHz) / 1000 : Number(freqMHz)
+  return trimNum(v)
+}
 
 /** >=1000 MHz 时附带 GHz 表示（formatFreq），主值仍以 MHz 保留 kHz 精度 */
 function freqCell(f) {
@@ -159,9 +164,8 @@ function freqCell(f) {
   return fmtMHz(mhz)
 }
 
-function fail(message) {
-  result.value = null
-  msgError(message)
+function roundTripText(deltaKHz) {
+  return Math.abs(deltaKHz) < 1e-6 ? '通过' : `偏差 ${fmtKHz(deltaKHz)}`
 }
 
 function finalize(rows, warn = '') {
@@ -172,114 +176,164 @@ function finalize(rows, warn = '') {
   }
 }
 
-function roundTripText(deltaKHz) {
-  return Math.abs(deltaKHz) < 1e-6 ? '通过' : `偏差 ${fmtKHz(deltaKHz)}`
+/** 实时输入不适合弹 toast，改为页面内提示并清空结果 */
+function invalidate(message) {
+  error.value = message
+  result.value = null
 }
 
-function calcToFreq() {
-  const n = numOf(value.value)
-  if (!Number.isFinite(n)) return fail('请输入有效的 ARFCN 数值')
-  if (!Number.isInteger(n)) return fail('ARFCN 必须是整数')
-  if (n < ARFCN_MIN || n > ARFCN_MAX) return fail(`ARFCN 超出范围（${ARFCN_MIN} ~ ${ARFCN_MAX}）`)
-
+/** ARFCN 侧输入 → 算出频率并回填频率框 */
+function syncFromArfcn() {
+  lastSide.value = 'arfcn'
+  error.value = ''
+  const raw = String(arfcnInput.value ?? '').trim()
+  if (raw === '') {
+    freqInput.value = ''
+    result.value = null
+    return
+  }
+  const n = Number(raw)
+  if (!Number.isFinite(n) || !Number.isInteger(n)) {
+    freqInput.value = ''
+    return invalidate('ARFCN 必须是整数')
+  }
+  if (n < ARFCN_MIN || n > ARFCN_MAX) {
+    freqInput.value = ''
+    return invalidate(`ARFCN 超出范围（${groupNumber(ARFCN_MIN)} ~ ${groupNumber(ARFCN_MAX)}）`)
+  }
   const r = arfcnToFreq(n)
-  if (!r) return fail('ARFCN 无法换算，请检查输入')
+  if (!r) {
+    freqInput.value = ''
+    return invalidate('ARFCN 无法换算，请检查输入')
+  }
+
+  freqInput.value = freqFieldText(r.freqMHz)
 
   const seg = r.segment
   const back = freqToArfcn(r.freqMHz)
   const rtDelta = back ? (r.freqMHz - back.snappedMHz) * 1000 : NaN
-  const formula = `F_REF = ${seg.fRefOffs} + ${seg.deltaFKHz} kHz × (${n} − ${seg.nRefOffs}) = ${fmtMHz(r.freqMHz)}`
 
   finalize([
+    ['输入方向', 'N_REF → F_REF'],
     ['N_REF', groupNumber(n)],
     ['F_REF', freqCell(r.freqMHz)],
     ['所属段', seg.label],
     ['频率范围标识', r.frLabel],
     ['ΔF_Global', `${seg.deltaFKHz} kHz`],
     ['N_REF 取值范围', `${groupNumber(seg.nMin)} – ${groupNumber(seg.nMax)}`],
-    ['代入公式', formula],
+    ['栅格偏差', '0.000 kHz（ARFCN 栅格点）'],
+    ['代入公式', `F_REF = ${seg.fRefOffs} + ${seg.deltaFKHz} kHz × (${n} − ${seg.nRefOffs}) = ${fmtMHz(r.freqMHz)}`],
     ['往返校验', roundTripText(rtDelta)]
   ])
 }
 
-function calcToArfcn() {
-  const raw = numOf(value.value)
-  if (!Number.isFinite(raw)) return fail('请输入有效的频率数值')
-  const freqMHz = unit.value === 'GHz' ? raw * 1000 : raw
-  if (freqMHz <= 0) return fail('频率必须大于 0 MHz')
-  if (freqMHz > 100000) return fail('频率超出范围（0 ~ 100000 MHz）')
+/** 频率侧输入 → 算出最近 ARFCN 并回填 ARFCN 框 */
+function syncFromFreq() {
+  lastSide.value = 'freq'
+  error.value = ''
+  const raw = String(freqInput.value ?? '').trim()
+  if (raw === '') {
+    arfcnInput.value = ''
+    result.value = null
+    return
+  }
+  const v = Number(raw)
+  if (!Number.isFinite(v)) {
+    arfcnInput.value = ''
+    return invalidate('频率必须是有效数字')
+  }
+  const freqMHz = unit.value === 'GHz' ? v * 1000 : v
+  if (freqMHz <= 0) {
+    arfcnInput.value = ''
+    return invalidate('频率必须大于 0')
+  }
+  if (freqMHz > 100000) {
+    arfcnInput.value = ''
+    return invalidate('频率超出范围（0 ~ 100 000 MHz）')
+  }
 
   const r = freqToArfcn(freqMHz)
-  if (!r) return fail('频率超出 NR 全局频率栅格范围')
+  if (!r) {
+    arfcnInput.value = ''
+    return invalidate('频率超出 NR 全局频率栅格范围')
+  }
+
+  arfcnInput.value = String(r.arfcn)
 
   const seg = r.segment
   const back = arfcnToFreq(r.arfcn)
   const rtDelta = back ? (back.freqMHz - r.snappedMHz) * 1000 : NaN
   const inputText =
     unit.value === 'GHz'
-      ? `${trimNum(raw)} GHz（${trimNum(freqMHz)} MHz）`
-      : `${trimNum(freqMHz)} MHz`
+      ? `${trimNum9(v)} GHz（${trimNum9(freqMHz)} MHz）`
+      : `${trimNum9(freqMHz)} MHz`
   const warn = r.isExact
     ? ''
-    : `该频率不在 NR 栅格点上，最近的 N_REF 对应 ${fmtMHz(r.snappedMHz)}，偏差 ${fmtKHz(r.deltaKHz)}`
+    : `该频率不在 NR 栅格点上，最近的 N_REF = ${r.arfcn} 对应 ${fmtMHz(r.snappedMHz)}，偏差 ${fmtKHz(r.deltaKHz)}`
 
   finalize(
     [
+      ['输入方向', '频率 → N_REF'],
       ['输入频率', inputText],
       ['最近 N_REF', groupNumber(r.arfcn)],
       ['该 N_REF 对应频率', freqCell(r.snappedMHz)],
-      ['栅格偏差 (kHz)', fmtKHz(r.deltaKHz)],
+      ['栅格偏差', fmtKHz(r.deltaKHz)],
       ['是否精确命中', r.isExact ? '是' : '否'],
       ['所属段', seg.label],
       ['频率范围标识', seg.frLabel],
       ['ΔF_Global', `${seg.deltaFKHz} kHz`],
+      ['N_REF 取值范围', `${groupNumber(seg.nMin)} – ${groupNumber(seg.nMax)}`],
+      ['代入公式', `N_REF = ${seg.nRefOffs} + (${trimNum(freqMHz)} − ${seg.fRefOffs}) ÷ ${seg.deltaFKHz} kHz = ${r.arfcn}（就近取整）`],
       ['往返校验', roundTripText(rtDelta)]
     ],
     warn
   )
 }
 
-function calc() {
-  result.value = null
-  if (mode.value === 'toFreq') return calcToFreq()
-  return calcToArfcn()
+/**
+ * 切换 MHz / GHz：先把频率框的现有数值按新单位重写（保留用户原始输入，
+ * 包括非栅格点），再按「最后编辑的那一侧」重新联动，避免互相覆盖。
+ */
+let prevUnit = unit.value
+function onUnitChange() {
+  const freqRaw = String(freqInput.value ?? '').trim()
+  if (freqRaw !== '' && Number.isFinite(Number(freqRaw)) && prevUnit !== unit.value) {
+    const v = Number(freqRaw)
+    freqInput.value = trimNum9(unit.value === 'GHz' ? v / 1000 : v * 1000)
+  }
+  prevUnit = unit.value
+  if (lastSide.value === 'freq' && String(freqInput.value ?? '').trim() !== '') {
+    syncFromFreq()
+  } else if (String(arfcnInput.value ?? '').trim() !== '') {
+    syncFromArfcn()
+  }
 }
 
 function fillSample() {
-  if (mode.value === 'toFreq') {
-    value.value = '432000'
-  } else {
-    unit.value = 'MHz'
-    value.value = '2160'
-  }
-  result.value = null
+  arfcnInput.value = '432000'
+  syncFromArfcn()
 }
 
 function clearAll() {
-  value.value = ''
+  arfcnInput.value = ''
+  freqInput.value = ''
+  error.value = ''
   result.value = null
 }
+
+// 首屏给出一个可对照的示例
+syncFromArfcn()
 </script>
 
 <style scoped>
-.field-grid {
+.coord-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 14px;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.field .form-label {
-  margin-right: 0;
-}
-.radio-row {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  min-height: 40px;
+.unit-select {
+  width: 108px;
+  flex: none;
 }
 .data-table {
   width: 100%;
@@ -311,7 +365,7 @@ function clearAll() {
   white-space: nowrap;
 }
 @media (max-width: 640px) {
-  .field-grid {
+  .coord-grid {
     grid-template-columns: 1fr;
   }
   .data-table td.k {
