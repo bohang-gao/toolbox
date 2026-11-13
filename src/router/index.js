@@ -97,7 +97,8 @@ Object.assign(TOOL_COMPONENTS, COORD_TOOL_COMPONENTS)
 const RF_TOOL_COMPONENTS = {
   '/rf/arfcn': () => import('../views/tools/rf/arfcn.vue'),
   '/rf/gscn': () => import('../views/tools/rf/gscn.vue'),
-  '/rf/ssb-position': () => import('../views/tools/rf/ssb-position.vue')
+  '/rf/ssb-position': () => import('../views/tools/rf/ssb-position.vue'),
+  '/rf/rate': () => import('../views/tools/rf/rate.vue')
 }
 Object.assign(TOOL_COMPONENTS, RF_TOOL_COMPONENTS)
 

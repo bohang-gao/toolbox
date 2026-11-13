@@ -90,7 +90,8 @@ export const COORD_TOOLS = [
 export const RF_TOOLS = [
   { name: 'NR 频点换算', path: '/rf/arfcn', icon: 'fa-signal', color: '#0081ff', desc: 'NR-ARFCN 与频率双向换算，含三段栅格与往返校验' },
   { name: 'SSB GSCN 换算', path: '/rf/gscn', icon: 'fa-bullseye', color: '#9c26b0', desc: 'GSCN ↔ 同步栅格频点 ↔ NR-ARFCN 三角互转' },
-  { name: 'SSB 位置关系', path: '/rf/ssb-position', icon: 'fa-th', color: '#e54d42', desc: 'SSB / Point A / CORESET#0 / SIB1 时频位置与示意图' }
+  { name: 'SSB 位置关系', path: '/rf/ssb-position', icon: 'fa-th', color: '#e54d42', desc: 'SSB / Point A / CORESET#0 / SIB1 时频位置与示意图' },
+  { name: '速率计算', path: '/rf/rate', icon: 'fa-tachometer', color: '#0081ff', desc: '按 TBS 流程估算 1 秒吞吐量，含 TDD 配比' }
 ]
 
 export const ALL_SECTIONS = [

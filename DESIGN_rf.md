@@ -6,13 +6,14 @@
 ## 1. 结论
 
 在现有 4 个分区（图片 / 文档 / 其他 / 坐标）之外新增第 5 分区 **RF Wireless**，
-共 3 个工具，全部纯前端计算，不引入 npm 依赖、不调用后端：
+共 4 个工具，全部纯前端计算，不引入 npm 依赖、不调用后端：
 
 | # | 工具 | 路由 | 职责 |
 |---|---|---|---|
 | 1 | NR 频点换算 | `/rf/arfcn` | NR-ARFCN ↔ 频率（F_REF）双向换算，含分段参数、栅格、往返校验 |
 | 2 | SSB GSCN 换算 | `/rf/gscn` | GSCN ↔ SS_REF ↔ NR-ARFCN 三角互转，含 N/M 反解与栅格偏差 |
 | 3 | SSB 位置关系 | `/rf/ssb-position` | 载波 / Point A / SSB / CORESET#0 / SIB1 的频域与时域位置关系 + 示意图 |
+| 4 | 速率计算 | `/rf/rate` | 按 TS 38.214 TBS 流程估算 1 秒吞吐量，含 TDD 上下行配比与调度次数 |
 
 ## 2. 依据
 
@@ -132,6 +133,25 @@
 - **自检**：Point A = 占用下边界、SSB 是否落在载波内、SSB 与 CORESET#0 是否重叠、N_RB 是否与带宽/SCS 匹配
 - **示意图**：SVG 频域图（标称带宽 / 占用带宽 / SSB / CORESET#0 / Point A / 中心频点）
   + 时频图（横轴 ms / slot，纵轴 MHz），可在 1–3 个小区间叠加对比
+
+### 5.4 `/rf/rate` — 速率计算
+
+- **输入**：传输方向（DL/UL）、双工（FDD/TDD）、TDD 上下行配比（含特殊 slot 是否计入下行）、
+  SCS、每 slot 符号数 N_sh_symb、PRB 数、MCS 表与索引、层数 v、xOverhead、DM-RS 配置
+  （类型 / 前置符号 / 附加符号 / 无数据 CDM 组数）、每秒调度次数（自动或手动）
+- **算法**（TS 38.214 §5.1.3.2）：
+  1. `N′_RE = 12 × N_sh_symb − N_DMRS_PRB − N_oh`
+  2. `N_RE = min(156, N′_RE) × n_PRB`
+  3. `N_info = N_RE × R × Qm × v`
+  4. `N_info ≤ 3824` → 量化后查表 5.1.3.2-1 取不小于 N_info′ 的最近 TBS；
+     否则走分段公式（C 按 R ≤ 0.25 分 3816 / 8424）
+- **输出**：TBS、每 slot 字节数、每秒调度次数、1 秒吞吐（bps / MB/s）、
+  理论值对比（未量化的 `N_info × 调度次数`）、实际频谱效率
+- **DM-RS RE 数**（TS 38.211 §7.4.1.1）：Type1 = 6 RE/RB/符号/CDM 组，Type2 = 4
+
+`ratekit.js` 与之配套，`tests/ratekit.test.mjs` 93 项断言：
+MCS 表 1~4 逐表抽查、TBS 量化表 93 项结构与边界、两条 TBS 分支的手算算例、
+FDD/TDD 调度次数、273RB/30kHz/MCS27 的工程基准（417.952 Mbps）。
 
 ## 6. 验收标准
 
