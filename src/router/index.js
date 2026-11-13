@@ -94,6 +94,13 @@ const COORD_TOOL_COMPONENTS = {
 }
 Object.assign(TOOL_COMPONENTS, COORD_TOOL_COMPONENTS)
 
+const RF_TOOL_COMPONENTS = {
+  '/rf/arfcn': () => import('../views/tools/rf/arfcn.vue'),
+  '/rf/gscn': () => import('../views/tools/rf/gscn.vue'),
+  '/rf/ssb-position': () => import('../views/tools/rf/ssb-position.vue')
+}
+Object.assign(TOOL_COMPONENTS, RF_TOOL_COMPONENTS)
+
 // 其余工具全部走通用 ToolPageView（各工具面板由后续任务按 SPEC §5 实现）
 const toolRoutes = ALL_TOOLS
   .filter(t => !STUB_PATHS.includes(t.path))
@@ -110,6 +117,7 @@ const routes = [
   { path: '/c/pdf', component: Home, meta: { cat: 'pdf' } },
   { path: '/c/text', component: Home, meta: { cat: 'text' } },
   { path: '/c/coord', component: Home, meta: { cat: 'coord' } },
+  { path: '/c/rf', component: Home, meta: { cat: 'rf' } },
   ...STUB_PATHS.map(p => {
     const t = ALL_TOOLS.find(x => x.path === p)
     return { path: p, component: () => import('../views/Stub.vue'), meta: { title: t ? t.name : '工具', tool: t } }

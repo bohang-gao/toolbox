@@ -87,11 +87,18 @@ export const COORD_TOOLS = [
   { name: 'RTCM3数据解析', path: '/coord/rtcm3', icon: 'fa-microchip', color: '#a5673f', desc: '帧结构、消息类型与 CRC24Q 校验' }
 ]
 
+export const RF_TOOLS = [
+  { name: 'NR 频点换算', path: '/rf/arfcn', icon: 'fa-signal', color: '#0081ff', desc: 'NR-ARFCN 与频率双向换算，含三段栅格与往返校验' },
+  { name: 'SSB GSCN 换算', path: '/rf/gscn', icon: 'fa-bullseye', color: '#9c26b0', desc: 'GSCN ↔ 同步栅格频点 ↔ NR-ARFCN 三角互转' },
+  { name: 'SSB 位置关系', path: '/rf/ssb-position', icon: 'fa-th', color: '#e54d42', desc: 'SSB / Point A / CORESET#0 / SIB1 时频位置与示意图' }
+]
+
 export const ALL_SECTIONS = [
   { title: '图片工具', tools: IMG_TOOLS },
   { title: '文档工具', tools: PDF_TOOLS },
   { title: '其他工具', tools: MORE_TOOLS },
-  { title: '坐标工具', tools: COORD_TOOLS }
+  { title: '坐标工具', tools: COORD_TOOLS },
+  { title: 'RF Wireless', tools: RF_TOOLS }
 ]
 
 export const ALL_TOOLS = ALL_SECTIONS.flatMap(s => s.tools)
